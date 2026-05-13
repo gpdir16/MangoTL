@@ -1,0 +1,54 @@
+{
+    "id": "paddle",
+    "kind": "ocr-engine",
+    "name": "PaddleOCR",
+    "type": "paddle",
+    "enabled": true,
+    "default": true,
+    "capabilities": {
+        "languages": ["ja", "ko", "en", "latin"]
+    },
+    "settings": {
+        "strategy": "per-box",
+        "defaultLanguage": "ja",
+        "processing": {
+            "engine": "canvas-native"
+        },
+        "debugging": {
+            "debug": false,
+            "verbose": false,
+            "debugFolder": "server/out/ocr-debug"
+        },
+        "options": {
+            "imageHeight": 48
+        },
+        "languages": {
+            "ja": {
+                "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/japan/v3/japan_PP-OCRv3_mobile_rec_infer.onnx",
+                "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/japan/v3/japan_dict.txt",
+                "language": "japan"
+            },
+            "ko": {
+                "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/korean/v5/korean_PP-OCRv5_mobile_rec_infer.onnx",
+                "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/korean/v5/ppocrv5_korean_dict.txt",
+                "language": "korean"
+            },
+            "en": {
+                "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx",
+                "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/en/v5/ppocrv5_en_dict.txt",
+                "language": "en"
+            },
+            "latin": {
+                "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/latin_PP-OCRv5_mobile_rec_infer.onnx",
+                "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/ppocrv5_latin_dict.txt",
+                "language": "latin"
+            }
+        },
+        "filters": {
+            "minConfidence": 0.45,
+            "minTextLength": 2,
+            "maxTextAreaRatio": 0.2,
+            "rejectSingleCharacters": true
+        }
+    }
+}

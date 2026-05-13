@@ -1,0 +1,8 @@
+node_modules/
+.env
+.DS_Store
+server/out/
+server/.ocr-cache/
+server/.image-cache/
+_start.md
+test-images/*.jpeg

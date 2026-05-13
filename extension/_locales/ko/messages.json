@@ -1,0 +1,129 @@
+{
+    "extensionName": {
+        "message": "MangoTL"
+    },
+    "extensionDescription": {
+        "message": "망가, 만화, 웹툰, 코믹 이미지를 브라우저에서 바로 번역합니다."
+    },
+    "popupIntro": {
+        "message": "MangoTL은 지원되는 만화 이미지 위에 작은 번역 컨트롤을 표시합니다. 처음 시작하시나요? 설정을 열어 자신의 서버와 언어를 설정하세요."
+    },
+    "popupOpenOptions": {
+        "message": "설정 열기"
+    },
+    "optionsTitle": {
+        "message": "MangoTL 설정"
+    },
+    "optionsServerUrlLabel": {
+        "message": "서버 URL"
+    },
+    "optionsServerUrlPlaceholder": {
+        "message": "http://localhost:8787"
+    },
+    "optionsLanguageSettingsAria": {
+        "message": "언어 설정"
+    },
+    "optionsTargetLanguageLabel": {
+        "message": "도착 언어"
+    },
+    "optionsServerStatusLoading": {
+        "message": "서버 설정을 불러오는 중..."
+    },
+    "optionsServerStatusLoaded": {
+        "message": "서버 설정을 불러왔습니다"
+    },
+    "optionsServerStatusUnavailable": {
+        "message": "서버 설정을 사용할 수 없습니다: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "optionsSaveButton": {
+        "message": "저장"
+    },
+    "optionsSavedStatus": {
+        "message": "저장되었습니다"
+    },
+    "contentSourceLanguageLabel": {
+        "message": "출발"
+    },
+    "contentTargetLanguageLabel": {
+        "message": "도착"
+    },
+    "contentTranslateButton": {
+        "message": "번역"
+    },
+    "contentCloseButton": {
+        "message": "닫기"
+    },
+    "contentServerDefaultLanguage": {
+        "message": "서버 기본값"
+    },
+    "contentServerError": {
+        "message": "서버 오류: $STATUS$",
+        "placeholders": {
+            "status": {
+                "content": "$1"
+            }
+        }
+    },
+    "contentMissingResultError": {
+        "message": "서버 응답에 번역 결과가 없습니다."
+    },
+    "contentServerUnavailableTitle": {
+        "message": "서버에 연결할 수 없습니다"
+    },
+    "contentServerUnavailableBody": {
+        "message": "설정에서 서버 URL을 확인해 주세요."
+    },
+    "contentOpenSettings": {
+        "message": "설정 열기"
+    },
+    "contentButtonIdle": {
+        "message": "번역"
+    },
+    "contentButtonRunning": {
+        "message": "..."
+    },
+    "contentButtonFailed": {
+        "message": "재시도"
+    },
+    "contentTitleIdle": {
+        "message": "이 이미지 번역"
+    },
+    "contentTitleRunning": {
+        "message": "번역 중"
+    },
+    "contentTitleTranslated": {
+        "message": "다시 번역"
+    },
+    "contentTitleEmpty": {
+        "message": "감지된 텍스트 없음"
+    },
+    "contentTitleFailed": {
+        "message": "번역 실패"
+    },
+    "languageJapanese": {
+        "message": "일본어"
+    },
+    "languageKorean": {
+        "message": "한국어"
+    },
+    "languageEnglish": {
+        "message": "영어"
+    },
+    "languageLatin": {
+        "message": "라틴 문자"
+    },
+    "languageChinese": {
+        "message": "중국어"
+    },
+    "languageSimplifiedChinese": {
+        "message": "중국어 간체"
+    },
+    "languageTraditionalChinese": {
+        "message": "중국어 번체"
+    }
+}

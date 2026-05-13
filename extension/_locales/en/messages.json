@@ -1,0 +1,129 @@
+{
+    "extensionName": {
+        "message": "MangoTL"
+    },
+    "extensionDescription": {
+        "message": "Translate manga, manhwa, webtoon, and comic images directly in your browser."
+    },
+    "popupIntro": {
+        "message": "MangoTL adds a compact translate control to supported comic images. Are you new here? Open the settings to set up your server and language."
+    },
+    "popupOpenOptions": {
+        "message": "Open Settings"
+    },
+    "optionsTitle": {
+        "message": "MangoTL Settings"
+    },
+    "optionsServerUrlLabel": {
+        "message": "Server URL"
+    },
+    "optionsServerUrlPlaceholder": {
+        "message": "http://localhost:8787"
+    },
+    "optionsLanguageSettingsAria": {
+        "message": "Language settings"
+    },
+    "optionsTargetLanguageLabel": {
+        "message": "Target Language"
+    },
+    "optionsServerStatusLoading": {
+        "message": "Loading server config..."
+    },
+    "optionsServerStatusLoaded": {
+        "message": "Server config loaded"
+    },
+    "optionsServerStatusUnavailable": {
+        "message": "Server config unavailable: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "optionsSaveButton": {
+        "message": "Save"
+    },
+    "optionsSavedStatus": {
+        "message": "Saved"
+    },
+    "contentSourceLanguageLabel": {
+        "message": "Source"
+    },
+    "contentTargetLanguageLabel": {
+        "message": "Target"
+    },
+    "contentTranslateButton": {
+        "message": "Translate"
+    },
+    "contentCloseButton": {
+        "message": "Close"
+    },
+    "contentServerDefaultLanguage": {
+        "message": "Server default"
+    },
+    "contentServerError": {
+        "message": "Server error: $STATUS$",
+        "placeholders": {
+            "status": {
+                "content": "$1"
+            }
+        }
+    },
+    "contentMissingResultError": {
+        "message": "The server response did not include a translation result."
+    },
+    "contentServerUnavailableTitle": {
+        "message": "Server unavailable"
+    },
+    "contentServerUnavailableBody": {
+        "message": "Check the server URL in Settings."
+    },
+    "contentOpenSettings": {
+        "message": "Open Settings"
+    },
+    "contentButtonIdle": {
+        "message": "Translate"
+    },
+    "contentButtonRunning": {
+        "message": "..."
+    },
+    "contentButtonFailed": {
+        "message": "Retry"
+    },
+    "contentTitleIdle": {
+        "message": "Translate this image"
+    },
+    "contentTitleRunning": {
+        "message": "Translating"
+    },
+    "contentTitleTranslated": {
+        "message": "Translate again"
+    },
+    "contentTitleEmpty": {
+        "message": "No detected text"
+    },
+    "contentTitleFailed": {
+        "message": "Translation failed"
+    },
+    "languageJapanese": {
+        "message": "Japanese"
+    },
+    "languageKorean": {
+        "message": "Korean"
+    },
+    "languageEnglish": {
+        "message": "English"
+    },
+    "languageLatin": {
+        "message": "Latin Script"
+    },
+    "languageChinese": {
+        "message": "Chinese"
+    },
+    "languageSimplifiedChinese": {
+        "message": "Simplified Chinese"
+    },
+    "languageTraditionalChinese": {
+        "message": "Traditional Chinese"
+    }
+}

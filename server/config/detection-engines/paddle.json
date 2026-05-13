@@ -1,0 +1,27 @@
+{
+    "id": "paddle",
+    "kind": "detection-engine",
+    "name": "PaddleOCR Detection",
+    "type": "paddle",
+    "enabled": true,
+    "default": true,
+    "settings": {
+        "model": {
+            "detection": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/detection/PP-OCRv5_mobile_det_infer.ort"
+        },
+        "processing": {
+            "engine": "canvas-native"
+        },
+        "options": {
+            "maxSideLength": 1024,
+            "minimumAreaThreshold": 16,
+            "paddingVertical": 0.4,
+            "paddingHorizontal": 0.6
+        },
+        "debugging": {
+            "debug": false,
+            "verbose": false,
+            "debugFolder": "server/out/ocr-debug"
+        }
+    }
+}

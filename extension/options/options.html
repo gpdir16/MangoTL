@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="options.css" />
+        <title data-i18n="optionsTitle">MangoTL Settings</title>
+    </head>
+    <body>
+        <main class="options-shell">
+            <header class="options-header">
+                <h1 data-i18n="optionsTitle">MangoTL Settings</h1>
+            </header>
+
+            <form id="options-form">
+                <label>
+                    <span data-i18n="optionsServerUrlLabel">Server URL</span>
+                    <input
+                        id="server-url"
+                        name="serverUrl"
+                        type="url"
+                        required
+                        placeholder="http://localhost:8787"
+                        data-i18n-attr="placeholder:optionsServerUrlPlaceholder"
+                    />
+                </label>
+
+                <section class="language-fields" aria-label="Language settings" data-i18n-attr="aria-label:optionsLanguageSettingsAria">
+                    <label>
+                        <span data-i18n="optionsTargetLanguageLabel">Target Language</span>
+                        <select id="target-language" disabled></select>
+                    </label>
+                </section>
+
+                <p id="server-status" role="status" data-i18n="optionsServerStatusLoading">Loading server config...</p>
+
+                <div class="actions">
+                    <button type="submit" data-i18n="optionsSaveButton">Save</button>
+                    <span id="save-status" role="status"></span>
+                </div>
+            </form>
+        </main>
+        <script src="../shared/i18n.js"></script>
+        <script src="options.js"></script>
+    </body>
+</html>

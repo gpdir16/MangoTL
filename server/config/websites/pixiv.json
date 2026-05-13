@@ -1,0 +1,26 @@
+{
+    "id": "pixiv",
+    "kind": "website",
+    "name": "Pixiv",
+    "type": "website",
+    "enabled": true,
+    "default": true,
+    "settings": {
+        "sourceLanguage": "ja",
+        "hostPatterns": ["pixiv.net", "*.pixiv.net"],
+        "imageSelectors": ["main img[src*='pximg.net']", "article img[src*='pximg.net']", "img[src*='i.pximg.net']"],
+        "includeUrlPatterns": ["/img-original/", "/img-master/"],
+        "excludeUrlPatterns": ["/custom-thumb/", "/c/", "/soy/", "/common/", "/static/"],
+        "minImageWidth": 300,
+        "minImageHeight": 300,
+        "urlNormalizer": {
+            "stripHash": true,
+            "stripQuery": true
+        },
+        "imageKeyPattern": {
+            "match": "/img-[^/]+/img/(.+?)(?:_master1200|_square1200|_custom1200)?\\.(?:jpg|jpeg|png|webp)$",
+            "group": 1,
+            "flags": "i"
+        }
+    }
+}

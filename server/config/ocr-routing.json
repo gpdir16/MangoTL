@@ -1,0 +1,30 @@
+{
+    "id": "ocr-routing",
+    "kind": "routing",
+    "name": "OCR Routing",
+    "type": "ocr",
+    "enabled": true,
+    "default": true,
+    "settings": {
+        "detectionEngine": "paddle",
+        "ocrEngine": "paddle",
+        "languages": {
+            "ja": {
+                "detectionEngine": "paddle",
+                "ocrEngine": "mangaocr"
+            },
+            "ko": {
+                "detectionEngine": "paddle",
+                "ocrEngine": "paddle"
+            },
+            "en": {
+                "detectionEngine": "paddle",
+                "ocrEngine": "paddle"
+            },
+            "latin": {
+                "detectionEngine": "paddle",
+                "ocrEngine": "paddle"
+            }
+        }
+    }
+}

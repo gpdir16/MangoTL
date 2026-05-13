@@ -1,0 +1,35 @@
+{
+    "id": "mangaocr",
+    "kind": "ocr-engine",
+    "name": "Manga OCR",
+    "type": "mangaocr",
+    "enabled": true,
+    "default": false,
+    "capabilities": {
+        "languages": ["ja"]
+    },
+    "settings": {
+        "model": {
+            "repo": "https://huggingface.co/mayocream/manga-ocr-onnx/resolve/main",
+            "encoder": "encoder_model.onnx",
+            "decoder": "decoder_model.onnx",
+            "vocab": "vocab.txt"
+        },
+        "generation": {
+            "decoderStartTokenId": 2,
+            "eosTokenId": 3,
+            "maxLength": 128
+        },
+        "image": {
+            "size": 224,
+            "mean": 0.5,
+            "std": 0.5
+        },
+        "filters": {
+            "minConfidence": 0.75,
+            "minTextLength": 1,
+            "maxTextAreaRatio": 0.2,
+            "rejectSingleCharacters": false
+        }
+    }
+}

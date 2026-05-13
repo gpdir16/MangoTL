@@ -1,0 +1,90 @@
+:root {
+    color-scheme: dark;
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+body {
+    margin: 0;
+    color: white;
+    background: black;
+}
+
+.options-shell {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.options-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 24px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+form {
+    display: grid;
+    gap: 18px;
+}
+
+label {
+    display: grid;
+    gap: 8px;
+    color: rgb(230, 230, 230);
+}
+
+input,
+select {
+    min-height: 32px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    padding: 0 8px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.language-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+button {
+    min-height: 32px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 18px;
+    background: dodgerblue;
+    cursor: pointer;
+}
+
+#server-status,
+#save-status {
+    min-height: 20px;
+    margin: 0;
+    color: rgb(180, 180, 180);
+    font-size: 13px;
+}
+
+@media (max-width: 520px) {
+    .language-fields {
+        grid-template-columns: 1fr;
+    }
+}

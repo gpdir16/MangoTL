@@ -1,0 +1,51 @@
+{
+    "id": "app",
+    "kind": "app",
+    "name": "MangoTL Server",
+    "type": "server",
+    "enabled": true,
+    "default": true,
+    "settings": {
+        "port": 8787,
+        "languages": {
+            "source": "ja",
+            "target": "ko",
+            "sourceOptions": [
+                {
+                    "code": "ja",
+                    "label": "Japanese"
+                },
+                {
+                    "code": "ko",
+                    "label": "Korean"
+                },
+                {
+                    "code": "en",
+                    "label": "English"
+                },
+                {
+                    "code": "latin",
+                    "label": "Latin Script"
+                }
+            ],
+            "targetOptions": [
+                {
+                    "code": "ko",
+                    "label": "Korean"
+                },
+                {
+                    "code": "ja",
+                    "label": "Japanese"
+                },
+                {
+                    "code": "en",
+                    "label": "English"
+                },
+                {
+                    "code": "zh",
+                    "label": "Chinese"
+                }
+            ]
+        }
+    }
+}

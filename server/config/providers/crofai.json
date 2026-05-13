@@ -1,0 +1,22 @@
+{
+    "id": "crofai",
+    "kind": "provider",
+    "name": "CrofAI",
+    "type": "openai-compatible",
+    "enabled": true,
+    "default": true,
+    "settings": {
+        "baseUrl": "https://crof.ai/v1",
+        "apiKeyEnv": "CROFAI_API_KEY",
+        "defaultModel": "deepseek-v4-pro-precision",
+        "responseFormat": {
+            "type": "json_object"
+        },
+        "models": [
+            {
+                "id": "deepseek-v4-pro-precision",
+                "label": "OpenAI-compatible default"
+            }
+        ]
+    }
+}
