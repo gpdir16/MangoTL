@@ -908,14 +908,15 @@ async function requestImageTranslation(entry, sourceLanguage, signal) {
     }
 
     const queryString = query.toString();
+    const image = await readImageBytes(entry.url);
+    const formData = new FormData();
+
+    formData.append("image", new Blob([image.buffer], { type: image.contentType }), getImageFileName(entry, image.contentType));
+    formData.append("imageId", entry.identity || entry.key || "image");
+
     const response = await fetch(`${overlayState.serverUrl}/api/translate${queryString ? `?${queryString}` : ""}`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            imageUrl: entry.url,
-        }),
+        body: formData,
         signal,
     });
 
@@ -933,8 +934,47 @@ async function requestImageTranslation(entry, sourceLanguage, signal) {
 
     return {
         ...payload,
-        imageUrl: payload.imageUrl || entry.url,
+        imageId: payload.imageId || entry.identity || entry.key || null,
     };
+}
+
+async function readImageBytes(url) {
+    const response = await browser.runtime.sendMessage({
+        type: "MANGOTL_FETCH_IMAGE",
+        url,
+        imageFetch: overlayState.website?.imageFetch || {},
+    });
+
+    if (!response?.buffer) {
+        throw new Error(t("contentMissingImageError"));
+    }
+
+    return {
+        buffer: response.buffer,
+        contentType: response.contentType || "application/octet-stream",
+    };
+}
+
+function getImageFileName(entry, contentType) {
+    const extension = getImageFileExtension(contentType);
+    const rawName =
+        String(entry.key || entry.identity || "image")
+            .split("/")
+            .pop() || "image";
+    const safeName = rawName.replace(/[^\w.-]/g, "_").replace(/\.[^.]+$/, "") || "image";
+    return `${safeName}.${extension}`;
+}
+
+function getImageFileExtension(contentType) {
+    const extensions = {
+        "image/avif": "avif",
+        "image/gif": "gif",
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+    };
+
+    return extensions[String(contentType || "").toLowerCase()] || "img";
 }
 
 function getControlTranslationKey(control) {

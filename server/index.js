@@ -36,7 +36,7 @@ const app = new Elysia()
     .post(
         "/api/translate",
         async ({ body, query }) => {
-            const request = normalizeTranslateRequest(body, query, config);
+            const request = await normalizeTranslateRequest(body, query, config);
             const startTime = Date.now();
 
             try {
@@ -44,7 +44,7 @@ const app = new Elysia()
                 const duration = Date.now() - startTime;
 
                 console.log("[MangoTL] Translation completed:", {
-                    imageUrl: result.imageUrl,
+                    imageId: result.imageId,
                     duration: `${duration}ms`,
                     timestamp: new Date().toISOString(),
                 });
@@ -54,7 +54,7 @@ const app = new Elysia()
                 const duration = Date.now() - startTime;
 
                 console.error("[MangoTL] Translation failed:", {
-                    imageUrl: request.imageUrl,
+                    imageId: request.imageId,
                     duration: `${duration}ms`,
                     error: error.message,
                     code: error.code,

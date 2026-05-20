@@ -4,9 +4,16 @@
     "name": "__MSG_extensionName__",
     "version": "0.1.0",
     "description": "__MSG_extensionDescription__",
+    "icons": {
+        "16": "icons/mangotl_logo_16.png",
+        "32": "icons/mangotl_logo_32.png",
+        "48": "icons/mangotl_logo_48.png",
+        "96": "icons/mangotl_logo_96.png",
+        "128": "icons/mangotl_logo_128.png"
+    },
     "browser_specific_settings": {
         "gecko": {
-            "id": "mangotl@example.local",
+            "id": "{be992a46-4b74-46fe-8a23-3c411dcdf9fe}",
             "strict_min_version": "142.0",
             "data_collection_permissions": {
                 "required": ["none"]
@@ -17,6 +24,10 @@
     "web_accessible_resources": ["config/public-config.json"],
     "browser_action": {
         "default_title": "__MSG_extensionName__",
+        "default_icon": {
+            "16": "icons/mangotl_logo_16.png",
+            "32": "icons/mangotl_logo_32.png"
+        },
         "default_popup": "popup/popup.html"
     },
     "options_ui": {

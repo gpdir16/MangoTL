@@ -22,6 +22,7 @@ export async function loadServerConfig() {
 
     return {
         port: app.port || 8787,
+        maxImageBytes: getPositiveInteger(process.env.MANGOTL_MAX_IMAGE_BYTES, app.security?.maxImageBytes),
         defaultSourceLanguage: process.env.MANGOTL_SOURCE_LANGUAGE || app.languages?.source || null,
         defaultTargetLanguage: process.env.MANGOTL_TARGET_LANGUAGE || app.languages?.target || null,
         languageSettings: app.languages || {},
@@ -119,6 +120,18 @@ function formatKeys(keys) {
 
 function relativeConfigPath(filePath) {
     return path.relative(serverRoot, filePath);
+}
+
+function getPositiveInteger(...values) {
+    for (const value of values) {
+        const parsed = Number(value);
+
+        if (Number.isSafeInteger(parsed) && parsed > 0) {
+            return parsed;
+        }
+    }
+
+    return null;
 }
 
 async function loadJsonFile(filePath) {

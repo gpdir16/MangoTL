@@ -1,44 +1,17 @@
 {
-    "defaults": {
-        "sourceLanguage": "ja",
-        "targetLanguage": "ko"
-    },
+    "defaults": { "sourceLanguage": "ja", "targetLanguage": "ko" },
     "languages": {
         "sources": [
-            {
-                "code": "ja",
-                "label": "Japanese"
-            },
-            {
-                "code": "ko",
-                "label": "Korean"
-            },
-            {
-                "code": "en",
-                "label": "English"
-            },
-            {
-                "code": "latin",
-                "label": "Latin Script"
-            }
+            { "code": "ja", "label": "Japanese" },
+            { "code": "ko", "label": "Korean" },
+            { "code": "en", "label": "English" },
+            { "code": "latin", "label": "Latin Script" }
         ],
         "targets": [
-            {
-                "code": "ko",
-                "label": "Korean"
-            },
-            {
-                "code": "ja",
-                "label": "Japanese"
-            },
-            {
-                "code": "en",
-                "label": "English"
-            },
-            {
-                "code": "zh",
-                "label": "Chinese"
-            }
+            { "code": "ko", "label": "Korean" },
+            { "code": "ja", "label": "Japanese" },
+            { "code": "en", "label": "English" },
+            { "code": "zh", "label": "Chinese" }
         ]
     },
     "websites": [
@@ -47,15 +20,14 @@
             "name": "Pixiv",
             "sourceLanguage": "ja",
             "hostPatterns": ["pixiv.net", "*.pixiv.net"],
+            "imageHostPatterns": ["i.pximg.net", "*.pximg.net"],
             "imageSelectors": ["main img[src*='pximg.net']", "article img[src*='pximg.net']", "img[src*='i.pximg.net']"],
+            "imageFetch": { "referrer": "https://www.pixiv.net/", "referrerPolicy": "no-referrer-when-downgrade" },
             "includeUrlPatterns": ["/img-original/", "/img-master/"],
             "excludeUrlPatterns": ["/custom-thumb/", "/c/", "/soy/", "/common/", "/static/"],
             "minImageWidth": 300,
             "minImageHeight": 300,
-            "urlNormalizer": {
-                "stripHash": true,
-                "stripQuery": true
-            },
+            "urlNormalizer": { "stripHash": true, "stripQuery": true },
             "imageKeyPattern": {
                 "match": "/img-[^/]+/img/(.+?)(?:_master1200|_square1200|_custom1200)?\\.(?:jpg|jpeg|png|webp)$",
                 "group": 1,

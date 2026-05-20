@@ -1,40 +1,27 @@
-# WIP
-
-This project is still a work in progress and is not yet ready for use.
-
-Development is ongoing, so please save this repository and check back later.
-
-You can use it if you wish, but features may be incomplete, and some parts of the UI may only be available in Korean.
-
----
-
 English | [Korean](README_ko.md)
 
 # MangoTL
 
-MangoTL is an AI-powered translation browser extension and self-hostable server for manga, comics, and webtoons.
+MangoTL is an AI-powered manga, manhwa, webtoon, and comic image translator. It ships as a browser extension plus a self-hostable local server. The extension reads the selected image and uploads the image bytes to the server, then the server runs OCR, translates detected text with an OpenAI-compatible provider, and returns a rendered translated image.
 
-The goal is to provide professional-grade manga translation, similar to Immersive Translate's manga translation feature, without any complex setup.
+## Supported Items
 
-## Support List
-
-MangoTL supports various websites, languages, AI providers, and more.
+MangoTL supports a variety of websites, languages, AI providers, and OCR engines.
 
 You can check the full list below.
 
 ### Websites
 
-- Pixiv.net
-- X.com
+- Pixiv
 
-### Source Languages (Manga Language)
+### Source Languages (comic language)
 
 - Japanese
 - Korean
 - English
-- Latin
+- Latin script
 
-### Target Languages (Your Language)
+### Target Languages (your language)
 
 - Korean
 - Japanese
@@ -46,19 +33,47 @@ You can check the full list below.
 - [CrofAI](https://crof.ai)
 - OpenAI-compatible endpoints
 
-### Detection Engine
+### Detection/OCR Engines
 
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — detection, OCR
+- [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (Japanese default) — OCR
 
-### OCR Engines
+## Server Setup
 
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
-- [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (Default for Japanese)
+1. Install dependencies.
 
-## Workflow
+    ```sh
+    bun install
+    ```
 
-1. **Browser:** The user clicks a button on the image. The browser sends the image information to the server.
-2. **Server:** Downloads the image and extracts text using OCR engines like PaddleOCR or manga-ocr.
+2. Create your environment file.
+
+    ```sh
+    cp .env.example .env
+    ```
+
+3. Add your provider API key to `.env`.
+
+    ```env
+    CROFAI_API_KEY=your_api_key_here
+    ```
+
+4. Start the server.
+
+    ```sh
+    bun run start
+    ```
+
+5. Check that the server is ready.
+
+    ```sh
+    curl http://localhost:8787/health
+    ```
+
+## Operation Flow
+
+1. **Browser:** The user clicks the button overlaid on the image. The browser sends the image information to the server.
+2. **Server:** Downloads the image and extracts text using OCR engines such as PaddleOCR and manga-ocr.
 3. **Server:** Sends the extracted text to the configured AI model for translation.
-4. **Server:** Erases the speech bubble text from the original image and inserts the translated text. The finished image is sent back to the browser.
-5. **Browser:** Overlays the received image onto the original. The user can now view the translated manga.
+4. **Server:** Removes the original comic bubble text from the image, inserts the translated text on top, and sends the final image back to the browser.
+5. **Browser:** Overlays the received image onto the original image. The user can now see the translated comic.

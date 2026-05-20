@@ -72,6 +72,9 @@
     "contentMissingResultError": {
         "message": "서버 응답에 번역 결과가 없습니다."
     },
+    "contentMissingImageError": {
+        "message": "확장 프로그램이 선택한 이미지를 읽을 수 없습니다."
+    },
     "contentServerUnavailableTitle": {
         "message": "서버에 연결할 수 없습니다"
     },

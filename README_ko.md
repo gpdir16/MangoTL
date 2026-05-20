@@ -1,13 +1,3 @@
-# WIP
-
-이 프로젝트는 아직 완성되지 않았으며 사용할수 있는 수준이 아닙니다.
-
-계속해서 작업중이니 이 리포지토리를 저장하고 나중에 다시 확인해주세요.
-
-원하신다면 사용하실수는 있지만 기능이 완전하지 않을수 있스빈다.
-
----
-
 [English](README.md) | Korean
 
 # MangoTL
@@ -25,7 +15,6 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 ### 웹사이트
 
 - Pixiv.net
-- X.com
 
 ### 출발 언어 (만화 언어)
 
@@ -46,14 +35,42 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 - [CrofAI](https://crof.ai)
 - OpenAI 호환 엔드포인트
 
-### 디텍션 엔진
+### 디텍션/OCR 엔진
 
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) - 디텍션, OCR
+- [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (일본어 기본값) - OCR
 
-### OCR 엔진
+## 서버 설정
 
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
-- [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (일본어 기본값)
+1. 의존성을 설치합니다.
+
+    ```sh
+    bun install
+    ```
+
+2. 환경 파일을 만듭니다.
+
+    ```sh
+    cp .env.example .env
+    ```
+
+3. `.env`에 제공자 API 키를 추가합니다.
+
+    ```env
+    CROFAI_API_KEY=your_api_key_here # 이 설정값은 예시입니다. 실제로 사용하는 제공자와 키로 변경하세요.
+    ```
+
+4. 서버를 시작합니다.
+
+    ```sh
+    bun start
+    ```
+
+5. 서버가 준비되었는지 확인합니다.
+
+    ```sh
+    curl http://localhost:8787/health
+    ```
 
 ## 작동 순서
 

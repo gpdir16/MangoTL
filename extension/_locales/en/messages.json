@@ -72,6 +72,9 @@
     "contentMissingResultError": {
         "message": "The server response did not include a translation result."
     },
+    "contentMissingImageError": {
+        "message": "The extension could not read the selected image."
+    },
     "contentServerUnavailableTitle": {
         "message": "Server unavailable"
     },

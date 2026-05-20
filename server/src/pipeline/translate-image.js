@@ -6,22 +6,24 @@ import { encodeImage, inpaintTextRegions } from "../text/inpaint.js";
 import { renderTranslatedText } from "../text/render-text.js";
 import { HttpError } from "../utils/http-error.js";
 import { createImageResultCacheKey, readCachedImageResult, writeCachedImageResult } from "../utils/image-result-cache.js";
+import { createHash } from "node:crypto";
 
 export async function translateImage(request, config, options = {}) {
     const provider = request.dryRun ? null : resolveProvider(config);
     const detectionEngine = resolveDetectionEngine(config, request.sourceLanguage);
     const ocrEngine = resolveOcrEngine(config, request.sourceLanguage);
-    const imageUrl = request.imageUrl;
+    const imageId = request.imageId || "image";
+    const imageHash = createHash("sha256").update(request.image.buffer).digest("hex");
 
     throwIfAborted(options.signal);
     options.onProgress?.({
         step: "processing",
-        imageUrl,
+        imageId,
         label: "Translating image...",
     });
 
     const cacheKey = createImageResultCacheKey({
-        imageUrl,
+        imageHash,
         request,
         provider,
         detectionEngine,
@@ -31,17 +33,17 @@ export async function translateImage(request, config, options = {}) {
     throwIfAborted(options.signal);
 
     if (cachedResult) {
-        const result = attachImageResultContext(cachedResult, request, imageUrl);
-        console.log(`[MangoTL] Using cached image translation: ${imageUrl}`);
+        const result = attachImageResultContext(cachedResult, request, imageId);
+        console.log(`[MangoTL] Using cached image translation: ${imageId}`);
         options.onProgress?.({
             step: "completed",
-            imageUrl,
+            imageId,
             label: "Image translated",
         });
         return result;
     }
 
-    const image = await fetchImage(imageUrl, options.signal);
+    const image = request.image;
 
     try {
         const ocr = await runOcr(image, detectionEngine, ocrEngine);
@@ -54,7 +56,7 @@ export async function translateImage(request, config, options = {}) {
 
         if (sourceBlocks.length === 0) {
             const result = {
-                imageUrl,
+                imageId,
                 sourceLanguage: request.sourceLanguage,
                 targetLanguage: request.targetLanguage,
                 blocks: [],
@@ -63,7 +65,7 @@ export async function translateImage(request, config, options = {}) {
             throwIfAborted(options.signal);
             options.onProgress?.({
                 step: "completed",
-                imageUrl,
+                imageId,
                 label: "Image translated",
             });
             return result;
@@ -96,7 +98,7 @@ export async function translateImage(request, config, options = {}) {
         const renderedImage = encodeImage(ocr.canvas);
 
         const result = {
-            imageUrl,
+            imageId,
             sourceLanguage: request.sourceLanguage,
             targetLanguage: request.targetLanguage,
             renderedImage,
@@ -106,7 +108,7 @@ export async function translateImage(request, config, options = {}) {
         throwIfAborted(options.signal);
         options.onProgress?.({
             step: "completed",
-            imageUrl,
+            imageId,
             label: "Image translated",
         });
         return result;
@@ -124,17 +126,17 @@ async function cacheImageResult(cacheKey, result) {
     }
 }
 
-function attachImageResultContext(cachedResult, request, imageUrl) {
+function attachImageResultContext(cachedResult, request, imageId) {
     return {
         ...cachedResult,
-        imageUrl,
+        imageId,
         sourceLanguage: request.sourceLanguage,
         targetLanguage: request.targetLanguage,
     };
 }
 
 function stripImageResultContext(result) {
-    const { imageUrl, ...cacheableResult } = result;
+    const { imageId, ...cacheableResult } = result;
     return cacheableResult;
 }
 
@@ -232,53 +234,6 @@ function throwIfAborted(signal) {
     if (signal?.aborted) {
         throw new DOMException("Translation stopped", "AbortError");
     }
-}
-
-async function fetchImage(imageUrl, signal) {
-    let parsedUrl;
-
-    try {
-        parsedUrl = new URL(imageUrl);
-    } catch {
-        throw new HttpError(400, "invalid_image_url", `Invalid image URL: ${imageUrl}`);
-    }
-
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-        throw new HttpError(400, "invalid_image_url", `Unsupported image URL protocol: ${parsedUrl.protocol}`);
-    }
-
-    const response = await fetch(parsedUrl, {
-        headers: getImageFetchHeaders(parsedUrl),
-        signal,
-    });
-
-    if (!response.ok) {
-        throw new HttpError(response.status, "image_fetch_failed", `Failed to fetch image: ${imageUrl}`);
-    }
-
-    const contentType = response.headers.get("content-type") || "application/octet-stream";
-
-    if (!contentType.startsWith("image/")) {
-        throw new HttpError(415, "unsupported_image_type", `URL did not return an image: ${imageUrl}`);
-    }
-
-    return {
-        buffer: Buffer.from(await response.arrayBuffer()),
-        contentType,
-    };
-}
-
-function getImageFetchHeaders(parsedUrl) {
-    const headers = {
-        Accept: "image/avif,image/webp,image/png,image/jpeg,image/*,*/*;q=0.8",
-        "User-Agent": "MangoTL/0.1",
-    };
-
-    if (parsedUrl.hostname.endsWith("pximg.net")) {
-        headers.Referer = "https://www.pixiv.net/";
-    }
-
-    return headers;
 }
 
 function mergeTranslations(sourceBlocks, translatedBlocks) {

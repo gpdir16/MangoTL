@@ -7,6 +7,9 @@
     "default": true,
     "settings": {
         "port": 8787,
+        "security": {
+            "maxImageBytes": 20971520
+        },
         "languages": {
             "source": "ja",
             "target": "ko",

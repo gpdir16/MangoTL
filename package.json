@@ -3,18 +3,23 @@
     "version": "0.1.0",
     "private": true,
     "type": "module",
-    "description": "Translate manga/manhwa/webtoon/comics uploaded to Pixiv, X, etc., directly in your browser.",
+    "description": "Translate manga, manhwa, webtoon, and comic images directly in your browser.",
     "scripts": {
         "dev": "bun --watch server/index.js",
         "start": "bun server/index.js",
+        "check": "bun run format:check",
+        "sync:public-config": "bun server/scripts/sync-public-config.js",
+        "lint:extension": "bunx web-ext lint --source-dir extension",
+        "release:check": "bun run sync:public-config && bun run check && bun run lint:extension && bun run release:extension",
+        "release:extension": "bun server/scripts/package-extension.js",
         "format": "prettier --write .",
         "format:check": "prettier --check ."
     },
     "dependencies": {
-        "@snowfluke/ppu-paddle-ocr": "npm:@jsr/snowfluke__ppu-paddle-ocr@5.4.1",
+        "@snowfluke/ppu-paddle-ocr": "npm:@jsr/snowfluke__ppu-paddle-ocr@5.4.4",
         "elysia": "^1.4.28",
         "onnxruntime-node": "^1.24.3",
-        "ppu-ocv": "^3.1.0",
+        "ppu-ocv": "^3.1.5",
         "prettier": "^3.8.3"
     },
     "trustedDependencies": [

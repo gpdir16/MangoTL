@@ -1,11 +1,7 @@
 import { HttpError } from "../utils/http-error.js";
 
-export function normalizeTranslateRequest(body, query = {}, config = {}) {
-    const imageUrl = getImageUrl(body);
-
-    if (!imageUrl) {
-        throw new HttpError(400, "invalid_request", "POST body must be an object with imageUrl.");
-    }
+export async function normalizeTranslateRequest(body, query = {}, config = {}) {
+    const image = await getSubmittedImage(body, config);
 
     const websiteId = firstNonBlank(query.websiteId, query.website, body?.websiteId, getBodyWebsiteId(body));
     const website = resolveWebsite(config, websiteId);
@@ -24,7 +20,8 @@ export function normalizeTranslateRequest(body, query = {}, config = {}) {
     assertSupportedLanguage("target", targetLanguage, getConfiguredLanguageCodes(config, "targetOptions", [config.defaultTargetLanguage]));
 
     return {
-        imageUrl,
+        image,
+        imageId: getImageId(body, image),
         targetLanguage,
         sourceLanguage,
         websiteId: website?.id || websiteId || null,
@@ -32,15 +29,55 @@ export function normalizeTranslateRequest(body, query = {}, config = {}) {
     };
 }
 
-function getImageUrl(body) {
-    const value = typeof body === "string" ? body : body?.imageUrl || body?.image || body?.url;
+async function getSubmittedImage(body, config) {
+    const file = getImageFile(body);
 
-    if (typeof value !== "string") {
-        return null;
+    if (!file) {
+        throw new HttpError(400, "invalid_request", "POST body must include an image file field.");
     }
 
-    const trimmed = value.trim();
-    return trimmed || null;
+    const contentType = getImageContentType(file);
+
+    if (!contentType.startsWith("image/")) {
+        throw new HttpError(415, "unsupported_image_type", `Uploaded file is not an image: ${contentType}`);
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (buffer.byteLength === 0) {
+        throw new HttpError(400, "invalid_request", "Uploaded image is empty.");
+    }
+
+    if (config.maxImageBytes && buffer.byteLength > config.maxImageBytes) {
+        throw new HttpError(413, "image_too_large", `Uploaded image is larger than ${config.maxImageBytes} bytes.`);
+    }
+
+    return {
+        buffer,
+        contentType,
+        fileName: typeof file.name === "string" ? file.name : "image",
+    };
+}
+
+function getImageFile(body) {
+    if (isFileLike(body)) {
+        return body;
+    }
+
+    return [body?.image, body?.file].find(isFileLike) || null;
+}
+
+function isFileLike(value) {
+    return Boolean(value) && typeof value.arrayBuffer === "function";
+}
+
+function getImageContentType(file) {
+    return typeof file.type === "string" && file.type ? file.type : "application/octet-stream";
+}
+
+function getImageId(body, image) {
+    const value = firstNonBlank(body?.imageId, body?.id, image.fileName);
+    return value || "image";
 }
 
 function getBodyWebsiteId(body) {
