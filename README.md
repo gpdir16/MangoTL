@@ -4,6 +4,8 @@ English | [Korean](README_ko.md)
 
 MangoTL is an AI-powered manga, manhwa, webtoon, and comic image translator. It ships as a browser extension plus a self-hostable local server. The extension reads the selected image and uploads the image bytes to the server, then the server runs OCR, translates detected text with an OpenAI-compatible provider, and returns a rendered translated image.
 
+[View on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/)
+
 ## Supported Items
 
 MangoTL supports a variety of websites, languages, AI providers, and OCR engines.
@@ -77,3 +79,27 @@ You can check the full list below.
 3. **Server:** Sends the extracted text to the configured AI model for translation.
 4. **Server:** Removes the original comic bubble text from the image, inserts the translated text on top, and sends the final image back to the browser.
 5. **Browser:** Overlays the received image onto the original image. The user can now see the translated comic.
+
+## Extension Install
+
+### Install from Firefox Add-ons (recommended)
+
+1. [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/) to install.
+
+### Build and install manually
+
+1. Build the release zip: `bun run release:extension`
+2. In Firefox, open `about:debugging` → **This Firefox** → **Load Temporary Add-on** and select any file inside `extension/`.
+
+## Documentation
+
+- [Third-party software](docs/THIRD_PARTY.md)
+- [Contributing](CONTRIBUTING.md)
+
+## License
+
+MangoTL is free software licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later).
+
+Copyright © 2025–2026 gpdir16 and MangoTL contributors.
+
+If you modify this software and make it available to users over a network, you must provide the corresponding source code under the same license. See the [AGPL FAQ](https://www.gnu.org/licenses/agpl-faq.html) for details.

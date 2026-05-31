@@ -1,9 +1,18 @@
 {
     "name": "mangotl",
     "version": "0.1.0",
-    "private": true,
-    "type": "module",
     "description": "Translate manga, manhwa, webtoon, and comic images directly in your browser.",
+    "license": "AGPL-3.0-or-later",
+    "type": "module",
+    "author": "gpdir16 <me@gpdir16.com>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gpdir16/MangoTL.git"
+    },
+    "bugs": {
+        "url": "https://github.com/gpdir16/MangoTL/issues"
+    },
+    "homepage": "https://github.com/gpdir16/MangoTL#readme",
     "scripts": {
         "dev": "bun --watch server/index.js",
         "start": "bun server/index.js",

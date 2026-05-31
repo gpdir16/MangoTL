@@ -6,6 +6,8 @@ MangoTL은 만화, 망가, 웹툰을 위한 AI 기반 번역 브라우저 확장
 
 복잡한 작업 없이 Immersive Translate의 만화 번역 기능처럼 상업용 번역기 수준의 만화 번역을 수행하는것을 목표로 합니다.
 
+[Firefox Add-ons에서 보기](https://addons.mozilla.org/ko-KR/firefox/addon/mangotl/)
+
 ## 지원 목록
 
 MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
@@ -79,3 +81,27 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 3. **서버:** 설정된 AI 모델로 추출된 텍스트를 전송해 번역합니다.
 4. **서버:** 원본 이미지에서 망풍선 텍스트를 지우고 그 위에 번역된 텍스트를 삽입합니다. 완성된 이미지를 브라우저로 전송합니다.
 5. **브라우저:** 받은 이미지를 원본 이미지 위에 합칩니다. 이제 사용자는 번역된 만화를 확인할수 있습니다.
+
+## 확장 프로그램 설치
+
+### Firefox Add-ons에서 설치 (권장)
+
+1. [Firefox Add-ons](https://addons.mozilla.org/ko-KR/firefox/addon/mangotl/)에서 설치합니다.
+
+### 직접 빌드 후 임시 설치
+
+1. 릴리스 zip 빌드: `bun run release:extension`
+2. Firefox에서 `about:debugging` → **이 Firefox** → **임시 부가 기능 로드** 후 `extension/` 안의 파일을 선택합니다.
+
+## 문서
+
+- [서드파티 소프트웨어](docs/THIRD_PARTY.md)
+- [기여 가이드](CONTRIBUTING.md)
+
+## 라이선스
+
+MangoTL은 [GNU Affero General Public License v3.0 이상](LICENSE)(AGPL-3.0-or-later)으로 배포되는 자유 소프트웨어입니다.
+
+Copyright © 2026 gpdir16 및 MangoTL 기여자.
+
+이 소프트웨어를 수정해 네트워크로 제공하는 경우, 동일한 라이선스로 해당 소스 코드를 제공해야 합니다. 자세한 내용은 [AGPL FAQ](https://www.gnu.org/licenses/agpl-faq-ko.html)를 참고하세요.
