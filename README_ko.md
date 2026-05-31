@@ -14,6 +14,15 @@ MangoTL은 만화, 망가, 웹툰을 위한 AI 기반 번역 브라우저 확장
 <img width="314" height="228" alt="376712" src="https://github.com/user-attachments/assets/722e52c5-ef4f-4b21-94aa-1aca45256e85" />
 <img width="533" height="314" alt="376713" src="https://github.com/user-attachments/assets/083f12ad-3731-4370-8ba3-dcb41a3c0fdf" />
 
+### 이미지 샘플
+
+- 언어: 영어에서 한국어로
+- 제공자: 오픈라우터
+- 모델: google/gemma-4-26b-a4b-it
+
+<img width="230" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
+<img width="230" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
+
 ## 지원 목록
 
 MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
