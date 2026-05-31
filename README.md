@@ -12,6 +12,16 @@ MangoTL is an AI-powered manga, manhwa, webtoon, and comic image translator. It 
 <img width="319" height="244" alt="376709" src="https://github.com/user-attachments/assets/441f589c-a228-40c3-8729-1130fe960d85" />
 <img width="533" height="282" alt="376710" src="https://github.com/user-attachments/assets/e32dba97-171f-4024-947c-5080d0328708" />
 
+### Image sample
+
+- Lang: English to Korean
+- Provider: OpenRouter
+- Model: google/gemma-4-26b-a4b-it model.
+
+<img width="230" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
+<img width="230" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
+
+
 ## Supported Items
 
 MangoTL supports a variety of websites, languages, AI providers, and OCR engines.
