@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const serverRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const baseConfigTopLevelKeys = ["id", "kind", "name", "type", "enabled", "default", "settings"];
+const baseConfigTopLevelKeys = ["id", "kind", "name", "type", "settings"];
 const optionalConfigTopLevelKeysByKind = {
     "ocr-engine": ["capabilities"],
 };
@@ -16,10 +16,6 @@ export async function loadServerConfig() {
     const websites = await loadConfigDirectory(path.join(serverRoot, "config/websites"));
     const ocrRouting = await loadConfigFile(path.join(serverRoot, "config/ocr-routing.json"));
 
-    const enabledProviders = providers.filter((provider) => provider.enabled !== false);
-    const enabledOcrEngines = ocrEngines.filter((engine) => engine.enabled !== false);
-    const enabledDetectionEngines = detectionEngines.filter((engine) => engine.enabled !== false);
-
     return {
         port: app.port || 8787,
         maxImageBytes: getPositiveInteger(process.env.MANGOTL_MAX_IMAGE_BYTES, app.security?.maxImageBytes),
@@ -31,11 +27,9 @@ export async function loadServerConfig() {
         detectionEngines,
         websites,
         ocrRouting,
-        defaultProvider:
-            process.env.MANGOTL_AI_PROVIDER || enabledProviders.find((provider) => provider.default)?.id || enabledProviders[0]?.id || null,
-        defaultOcrEngine: ocrRouting?.ocrEngine || enabledOcrEngines.find((engine) => engine.default)?.id || enabledOcrEngines[0]?.id || null,
-        defaultDetectionEngine:
-            ocrRouting?.detectionEngine || enabledDetectionEngines.find((engine) => engine.default)?.id || enabledDetectionEngines[0]?.id || null,
+        defaultProvider: process.env.MANGOTL_AI_PROVIDER || null,
+        defaultOcrEngine: ocrRouting?.ocrEngine || null,
+        defaultDetectionEngine: ocrRouting?.detectionEngine || detectionEngines[0]?.id || null,
     };
 }
 
@@ -69,8 +63,6 @@ function normalizeConfigEntry(entry, filePath) {
         kind: entry.kind,
         name: entry.name,
         type: entry.type,
-        enabled: entry.enabled,
-        default: entry.default,
         ...settings,
     };
 
@@ -88,7 +80,8 @@ function assertCommonConfigShape(entry, filePath) {
 
     const keys = Object.keys(entry);
     const allowedKeys = getAllowedConfigTopLevelKeys(entry);
-    const missingKeys = baseConfigTopLevelKeys.filter((key) => !keys.includes(key));
+    const requiredKeys = baseConfigTopLevelKeys.filter((key) => !(optionalConfigTopLevelKeysByKind[entry.kind] || []).includes(key));
+    const missingKeys = requiredKeys.filter((key) => !keys.includes(key));
     const extraKeys = keys.filter((key) => !allowedKeys.includes(key));
 
     if (missingKeys.length > 0 || extraKeys.length > 0) {

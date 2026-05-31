@@ -3,8 +3,6 @@
     "kind": "ocr-engine",
     "name": "Manga OCR",
     "type": "mangaocr",
-    "enabled": true,
-    "default": false,
     "capabilities": {
         "languages": ["ja"]
     },

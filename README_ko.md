@@ -72,10 +72,11 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
     cp .env.example .env
     ```
 
-3. `.env`에 제공자 API 키를 추가합니다.
+3. `.env`에 제공자 API 키와 제공자를 지정합니다. 아래는 OpenRouter를 사용하는 예시입니다.
 
     ```env
-    CROFAI_API_KEY=your_api_key_here # 이 설정값은 예시입니다. 실제로 사용하는 제공자와 키로 변경하세요.
+    OPENROUTER_API_KEY=your_api_key_here
+    MANGOTL_AI_PROVIDER=openrouter
     ```
 
 4. 서버를 시작합니다.

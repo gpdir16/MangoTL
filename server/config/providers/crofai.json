@@ -3,8 +3,6 @@
     "kind": "provider",
     "name": "CrofAI",
     "type": "openai-compatible",
-    "enabled": true,
-    "default": true,
     "settings": {
         "baseUrl": "https://crof.ai/v1",
         "apiKeyEnv": "CROFAI_API_KEY",

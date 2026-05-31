@@ -3,8 +3,6 @@
     "kind": "provider",
     "name": "OpenRouter",
     "type": "openai-compatible",
-    "enabled": true,
-    "default": false,
     "settings": {
         "baseUrl": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",

@@ -142,10 +142,10 @@ function stripImageResultContext(result) {
 
 function resolveProvider(config) {
     const id = config.defaultProvider;
-    const provider = config.providers.find((candidate) => candidate.id === id && candidate.enabled !== false);
+    const provider = config.providers.find((candidate) => candidate.id === id);
 
     if (!provider) {
-        throw new HttpError(400, "provider_not_found", `AI provider not found or disabled: ${id || "(none)"}`);
+        throw new HttpError(400, "provider_not_found", `AI provider not found: ${id || "(none)"}`);
     }
 
     if (provider.type !== "openai-compatible") {
@@ -158,10 +158,10 @@ function resolveProvider(config) {
 function resolveDetectionEngine(config, sourceLanguage) {
     const language = sourceLanguage || config.defaultSourceLanguage;
     const id = getLanguageRouting(config, language)?.detectionEngine || config.defaultDetectionEngine;
-    const engine = config.detectionEngines.find((candidate) => candidate.id === id && candidate.enabled !== false);
+    const engine = config.detectionEngines.find((candidate) => candidate.id === id);
 
     if (!engine) {
-        throw new HttpError(400, "detection_engine_not_found", `Detection engine not found or disabled: ${id || "(none)"}`);
+        throw new HttpError(400, "detection_engine_not_found", `Detection engine not found: ${id || "(none)"}`);
     }
 
     return engine;
@@ -221,10 +221,10 @@ function resolveLanguageModel(engine, language, config) {
 }
 
 function findOcrEngine(config, engineId) {
-    const engine = config.ocrEngines.find((candidate) => candidate.id === engineId && candidate.enabled !== false);
+    const engine = config.ocrEngines.find((candidate) => candidate.id === engineId);
 
     if (!engine) {
-        throw new HttpError(400, "ocr_engine_not_found", `OCR engine not found or disabled: ${engineId || "(none)"}`);
+        throw new HttpError(400, "ocr_engine_not_found", `OCR engine not found: ${engineId || "(none)"}`);
     }
 
     return engine;

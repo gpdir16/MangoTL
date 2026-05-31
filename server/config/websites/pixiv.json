@@ -3,8 +3,6 @@
     "kind": "website",
     "name": "Pixiv",
     "type": "website",
-    "enabled": true,
-    "default": true,
     "settings": {
         "sourceLanguage": "ja",
         "hostPatterns": ["pixiv.net", "*.pixiv.net"],

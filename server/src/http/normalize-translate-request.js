@@ -93,10 +93,10 @@ function resolveWebsite(config, websiteId) {
         return null;
     }
 
-    const website = config.websites?.find((candidate) => candidate.id === websiteId && candidate.enabled !== false);
+    const website = config.websites?.find((candidate) => candidate.id === websiteId);
 
     if (!website) {
-        throw new HttpError(400, "website_not_found", `Website config not found or disabled: ${websiteId}`);
+        throw new HttpError(400, "website_not_found", `Website config not found: ${websiteId}`);
     }
 
     return website;
@@ -122,7 +122,7 @@ function getSourceLanguageFallbacks(config, website) {
     const codes = [website?.sourceLanguage, config.defaultSourceLanguage];
 
     for (const engine of config.ocrEngines || []) {
-        if (engine.enabled === false || !Array.isArray(engine.supportedLanguages)) {
+        if (!Array.isArray(engine.supportedLanguages)) {
             continue;
         }
 

@@ -18,7 +18,7 @@ export function buildPublicConfig(config) {
             sources: normalizeLanguageOptions(config.languageSettings?.sourceOptions, getSourceLanguageFallbacks(config)),
             targets: normalizeLanguageOptions(config.languageSettings?.targetOptions, [config.defaultTargetLanguage].filter(Boolean)),
         },
-        websites: config.websites.filter((website) => website.enabled !== false).map(toPublicWebsiteConfig),
+        websites: config.websites.map(toPublicWebsiteConfig),
     };
 }
 
@@ -48,7 +48,7 @@ function getSourceLanguageFallbacks(config) {
     const codes = [config.defaultSourceLanguage];
 
     for (const engine of config.ocrEngines || []) {
-        if (engine.enabled === false || !Array.isArray(engine.supportedLanguages)) {
+        if (!Array.isArray(engine.supportedLanguages)) {
             continue;
         }
 

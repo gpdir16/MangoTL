@@ -3,8 +3,6 @@
     "kind": "app",
     "name": "MangoTL Server",
     "type": "server",
-    "enabled": true,
-    "default": true,
     "settings": {
         "port": 8787,
         "security": {

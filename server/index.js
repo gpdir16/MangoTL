@@ -8,6 +8,19 @@ import { clearImageResultCache } from "./src/utils/image-result-cache.js";
 
 await clearImageResultCache();
 const config = await loadServerConfig();
+
+if (!config.defaultProvider) {
+    console.error("[MangoTL] Fatal: MANGOTL_AI_PROVIDER env var is not set. Set it to a provider id (e.g. crofai, openrouter).");
+    process.exit(1);
+}
+
+if (!config.providers.some((p) => p.id === config.defaultProvider)) {
+    console.error(
+        `[MangoTL] Fatal: MANGOTL_AI_PROVIDER "${config.defaultProvider}" does not match any known provider id. ` +
+            `Available: ${config.providers.map((p) => p.id).join(", ") || "(none)"}`,
+    );
+    process.exit(1);
+}
 const port = Number(process.env.PORT || config.port || 8787);
 
 const app = new Elysia()

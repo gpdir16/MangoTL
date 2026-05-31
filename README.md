@@ -71,10 +71,11 @@ You can check the full list below.
     cp .env.example .env
     ```
 
-3. Add your provider API key to `.env`.
+3. Add your provider API key and select your provider in `.env`. Below is an example using OpenRouter.
 
     ```env
-    CROFAI_API_KEY=your_api_key_here
+    OPENROUTER_API_KEY=your_api_key_here
+    MANGOTL_AI_PROVIDER=openrouter
     ```
 
 4. Start the server.

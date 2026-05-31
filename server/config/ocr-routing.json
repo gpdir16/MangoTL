@@ -3,8 +3,6 @@
     "kind": "routing",
     "name": "OCR Routing",
     "type": "ocr",
-    "enabled": true,
-    "default": true,
     "settings": {
         "detectionEngine": "paddle",
         "ocrEngine": "paddle",
