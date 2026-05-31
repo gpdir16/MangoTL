@@ -50,6 +50,7 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 ### AI 제공자
 
 - [CrofAI](https://crof.ai)
+- [OpenRouter](https://openrouter.ai)
 - OpenAI 호환 엔드포인트
 
 ### 디텍션/OCR 엔진

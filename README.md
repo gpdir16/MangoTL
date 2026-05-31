@@ -49,6 +49,7 @@ You can check the full list below.
 ### AI Providers
 
 - [CrofAI](https://crof.ai)
+- [OpenRouter](https://openrouter.ai)
 - OpenAI-compatible endpoints
 
 ### Detection/OCR Engines
@@ -116,6 +117,6 @@ You can check the full list below.
 
 MangoTL is free software licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later).
 
-Copyright © 2025–2026 gpdir16 and MangoTL contributors.
+Copyright © 2026 gpdir16 and MangoTL contributors.
 
 If you modify this software and make it available to users over a network, you must provide the corresponding source code under the same license. See the [AGPL FAQ](https://www.gnu.org/licenses/agpl-faq.html) for details.
