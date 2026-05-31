@@ -1,0 +1,22 @@
+{
+    "id": "openrouter",
+    "kind": "provider",
+    "name": "OpenRouter",
+    "type": "openai-compatible",
+    "enabled": true,
+    "default": false,
+    "settings": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKeyEnv": "OPENROUTER_API_KEY",
+        "defaultModel": "google/gemma-4-26b-a4b-it",
+        "responseFormat": {
+            "type": "json_object"
+        },
+        "models": [
+            {
+                "id": "google/gemma-4-26b-a4b-it:free",
+                "label": "OpenAI-compatible default"
+            }
+        ]
+    }
+}
