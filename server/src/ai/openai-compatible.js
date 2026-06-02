@@ -3,14 +3,13 @@ import { HttpError } from "../utils/http-error.js";
 
 const MAX_TRANSLATION_ATTEMPTS = 2;
 
-export async function translateWithOpenAICompatible({ provider, sourceLanguage, targetLanguage, blocks, signal }) {
+export async function translateWithOpenAICompatible({ provider, model, sourceLanguage, targetLanguage, blocks, signal }) {
     if (blocks.length === 0) {
         return [];
     }
 
     const apiKey = process.env[provider.apiKeyEnv];
     const baseUrl = provider.baseUrl;
-    const selectedModel = provider.defaultModel;
 
     if (!apiKey) {
         throw new HttpError(503, "ai_api_key_missing", `Missing API key env: ${provider.apiKeyEnv}`);
@@ -20,8 +19,8 @@ export async function translateWithOpenAICompatible({ provider, sourceLanguage, 
         throw new HttpError(500, "ai_base_url_missing", `Missing provider base URL: ${provider.id}`);
     }
 
-    if (!selectedModel) {
-        throw new HttpError(500, "ai_model_missing", `Missing provider model: ${provider.id}`);
+    if (!model) {
+        throw new HttpError(500, "ai_model_missing", `Missing model for provider: ${provider.id}`);
     }
 
     const endpointUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
@@ -34,7 +33,7 @@ export async function translateWithOpenAICompatible({ provider, sourceLanguage, 
         endpointUrl,
         apiKey,
         provider,
-        selectedModel,
+        model,
         messages,
         signal,
     });
@@ -47,7 +46,7 @@ export async function translateWithOpenAICompatible({ provider, sourceLanguage, 
     }));
 }
 
-async function requestTranslationsWithRetry({ endpointUrl, apiKey, provider, selectedModel, messages, signal }) {
+async function requestTranslationsWithRetry({ endpointUrl, apiKey, provider, model, messages, signal }) {
     let lastPayload = null;
 
     for (let attempt = 1; attempt <= MAX_TRANSLATION_ATTEMPTS; attempt += 1) {
@@ -61,7 +60,7 @@ async function requestTranslationsWithRetry({ endpointUrl, apiKey, provider, sel
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    model: selectedModel,
+                    model,
                     temperature: attempt === 1 ? 0.4 : 0.2,
                     response_format: provider.responseFormat || { type: "json_object" },
                     messages,

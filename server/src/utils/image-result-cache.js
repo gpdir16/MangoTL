@@ -12,7 +12,7 @@ export async function clearImageResultCache(logPrefix = "[MangoTL]") {
     console.log(`${logPrefix} Cleared image result cache: ${cacheRoot}`);
 }
 
-export function createImageResultCacheKey({ imageHash, request, provider, detectionEngine, ocrEngine }) {
+export function createImageResultCacheKey({ imageHash, request, provider, model, detectionEngine, ocrEngine }) {
     const keyPayload = {
         version: cacheVersion,
         imageHash,
@@ -20,7 +20,7 @@ export function createImageResultCacheKey({ imageHash, request, provider, detect
         targetLanguage: request.targetLanguage,
         dryRun: Boolean(request.dryRun),
         providerId: request.dryRun ? null : provider?.id || null,
-        model: request.dryRun ? null : provider?.defaultModel || null,
+        model: request.dryRun ? null : model || null,
         detectionEngineId: detectionEngine?.id || null,
         ocrEngineId: ocrEngine?.id || null,
     };

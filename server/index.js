@@ -21,6 +21,12 @@ if (!config.providers.some((p) => p.id === config.defaultProvider)) {
     );
     process.exit(1);
 }
+
+if (!config.defaultModel) {
+    console.error("[MangoTL] Fatal: MANGOTL_AI_MODEL env var is not set. Set it to a provider model name (e.g. openai/gpt-5.4-nano).");
+    process.exit(1);
+}
+
 const port = Number(process.env.PORT || config.port || 8787);
 
 const app = new Elysia()
@@ -99,6 +105,7 @@ console.log(
     config.websites.map((website) => website.id),
 );
 console.log("[MangoTL] Default Provider:", config.defaultProvider);
+console.log("[MangoTL] Default Model:", config.defaultModel);
 
 function errorResponse(error, set) {
     if (error instanceof HttpError) {

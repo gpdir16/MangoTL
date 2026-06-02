@@ -26,6 +26,7 @@ export async function translateImage(request, config, options = {}) {
         imageHash,
         request,
         provider,
+        model: config.defaultModel,
         detectionEngine,
         ocrEngine,
     });
@@ -80,6 +81,7 @@ export async function translateImage(request, config, options = {}) {
               }))
             : await translateWithOpenAICompatible({
                   provider,
+                  model: config.defaultModel,
                   sourceLanguage: request.sourceLanguage,
                   targetLanguage: request.targetLanguage,
                   blocks: sourceBlocks,

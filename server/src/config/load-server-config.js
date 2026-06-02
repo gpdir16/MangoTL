@@ -28,6 +28,7 @@ export async function loadServerConfig() {
         websites,
         ocrRouting,
         defaultProvider: process.env.MANGOTL_AI_PROVIDER || null,
+        defaultModel: process.env.MANGOTL_AI_MODEL || null,
         defaultOcrEngine: ocrRouting?.ocrEngine || null,
         defaultDetectionEngine: ocrRouting?.detectionEngine || detectionEngines[0]?.id || null,
     };
