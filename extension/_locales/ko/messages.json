@@ -117,16 +117,13 @@
     "languageEnglish": {
         "message": "영어"
     },
-    "languageLatin": {
-        "message": "라틴 문자"
-    },
     "languageChinese": {
         "message": "중국어"
     },
-    "languageSimplifiedChinese": {
-        "message": "중국어 간체"
+    "languageGerman": {
+        "message": "독일어"
     },
-    "languageTraditionalChinese": {
-        "message": "중국어 번체"
+    "languageSwedish": {
+        "message": "스웨덴어"
     }
 }

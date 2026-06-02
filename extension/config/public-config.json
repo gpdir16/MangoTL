@@ -5,13 +5,17 @@
             { "code": "ja", "label": "Japanese" },
             { "code": "ko", "label": "Korean" },
             { "code": "en", "label": "English" },
-            { "code": "latin", "label": "Latin Script" }
+            { "code": "zh", "label": "Chinese" },
+            { "code": "de", "label": "German" },
+            { "code": "sv", "label": "Swedish" }
         ],
         "targets": [
-            { "code": "ko", "label": "Korean" },
             { "code": "ja", "label": "Japanese" },
+            { "code": "ko", "label": "Korean" },
             { "code": "en", "label": "English" },
-            { "code": "zh", "label": "Chinese" }
+            { "code": "zh", "label": "Chinese" },
+            { "code": "de", "label": "German" },
+            { "code": "sv", "label": "Swedish" }
         ]
     },
     "websites": [

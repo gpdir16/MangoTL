@@ -36,14 +36,18 @@ You can check the full list below.
 - Japanese
 - Korean
 - English
-- Latin script
+- Chinese
+- German
+- Swedish
 
 ### Target Languages (your language)
 
-- Korean
 - Japanese
+- Korean
 - English
 - Chinese
+- German
+- Swedish
 
 ### AI Providers
 

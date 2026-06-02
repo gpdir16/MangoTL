@@ -25,18 +25,26 @@
                     "label": "English"
                 },
                 {
-                    "code": "latin",
-                    "label": "Latin Script"
+                    "code": "zh",
+                    "label": "Chinese"
+                },
+                {
+                    "code": "de",
+                    "label": "German"
+                },
+                {
+                    "code": "sv",
+                    "label": "Swedish"
                 }
             ],
             "targetOptions": [
                 {
-                    "code": "ko",
-                    "label": "Korean"
-                },
-                {
                     "code": "ja",
                     "label": "Japanese"
+                },
+                {
+                    "code": "ko",
+                    "label": "Korean"
                 },
                 {
                     "code": "en",
@@ -45,6 +53,14 @@
                 {
                     "code": "zh",
                     "label": "Chinese"
+                },
+                {
+                    "code": "de",
+                    "label": "German"
+                },
+                {
+                    "code": "sv",
+                    "label": "Swedish"
                 }
             ]
         }

@@ -117,16 +117,13 @@
     "languageEnglish": {
         "message": "English"
     },
-    "languageLatin": {
-        "message": "Latin Script"
-    },
     "languageChinese": {
         "message": "Chinese"
     },
-    "languageSimplifiedChinese": {
-        "message": "Simplified Chinese"
+    "languageGerman": {
+        "message": "German"
     },
-    "languageTraditionalChinese": {
-        "message": "Traditional Chinese"
+    "languageSwedish": {
+        "message": "Swedish"
     }
 }

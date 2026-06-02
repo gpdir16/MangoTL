@@ -3,11 +3,8 @@ const LANGUAGE_NAMES = {
     ko: "Korean",
     en: "English",
     zh: "Chinese",
-    "zh-CN": "Simplified Chinese",
-    "zh-TW": "Traditional Chinese",
-    es: "Spanish",
-    fr: "French",
     de: "German",
+    sv: "Swedish",
 };
 
 function languageName(code) {

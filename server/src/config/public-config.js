@@ -2,10 +2,9 @@ const LANGUAGE_LABELS = {
     ja: "Japanese",
     ko: "Korean",
     en: "English",
-    latin: "Latin Script",
     zh: "Chinese",
-    "zh-CN": "Simplified Chinese",
-    "zh-TW": "Traditional Chinese",
+    de: "German",
+    sv: "Swedish",
 };
 
 export function buildPublicConfig(config) {

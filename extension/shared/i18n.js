@@ -11,10 +11,9 @@
         ja: "languageJapanese",
         ko: "languageKorean",
         en: "languageEnglish",
-        latin: "languageLatin",
         zh: "languageChinese",
-        "zh-CN": "languageSimplifiedChinese",
-        "zh-TW": "languageTraditionalChinese",
+        de: "languageGerman",
+        sv: "languageSwedish",
     };
 
     function getExtensionApi() {

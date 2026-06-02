@@ -19,7 +19,11 @@
                 "detectionEngine": "paddle",
                 "ocrEngine": "paddle"
             },
-            "latin": {
+            "de": {
+                "detectionEngine": "paddle",
+                "ocrEngine": "paddle"
+            },
+            "sv": {
                 "detectionEngine": "paddle",
                 "ocrEngine": "paddle"
             }

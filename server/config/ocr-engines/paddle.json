@@ -4,7 +4,7 @@
     "name": "PaddleOCR",
     "type": "paddle",
     "capabilities": {
-        "languages": ["ja", "ko", "en", "latin"]
+        "languages": ["ja", "ko", "en", "de", "sv"]
     },
     "settings": {
         "strategy": "per-box",
@@ -36,7 +36,12 @@
                 "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/en/v5/ppocrv5_en_dict.txt",
                 "language": "en"
             },
-            "latin": {
+            "de": {
+                "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/latin_PP-OCRv5_mobile_rec_infer.onnx",
+                "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/ppocrv5_latin_dict.txt",
+                "language": "latin"
+            },
+            "sv": {
                 "recognition": "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/latin_PP-OCRv5_mobile_rec_infer.onnx",
                 "charactersDictionary": "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main/recognition/multi/latin/v5/ppocrv5_latin_dict.txt",
                 "language": "latin"
