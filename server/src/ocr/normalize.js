@@ -10,7 +10,7 @@ export function normalizeOcrResult(raw, detection, ocrEngineConfig) {
     const filters = ocrEngineConfig.filters || {};
     const imageSize = { width: detection.width, height: detection.height };
 
-    return items
+    const usableItems = items
         .map((item, index) => ({
             id: item.id ?? `ocr-${index + 1}`,
             text: extractText(item),
@@ -18,6 +18,8 @@ export function normalizeOcrResult(raw, detection, ocrEngineConfig) {
             coords: extractCoords(item),
         }))
         .filter((item) => isUsableOcrItem(item, filters, imageSize));
+
+    return removeOverlappingDuplicates(usableItems);
 }
 
 function isUsableOcrItem(item, filters, imageSize) {
@@ -131,4 +133,60 @@ function rectFromExtents(xs, ys) {
         width: Math.max(1, maxX - minX),
         height: Math.max(1, maxY - minY),
     };
+}
+
+function removeOverlappingDuplicates(items) {
+    const kept = [];
+
+    for (const item of [...items].sort(compareOcrQuality)) {
+        if (!kept.some((candidate) => isDuplicateRegion(candidate.coords, item.coords))) {
+            kept.push(item);
+        }
+    }
+
+    return kept.sort((a, b) => ocrItemOrder(a) - ocrItemOrder(b));
+}
+
+function compareOcrQuality(a, b) {
+    return ocrQualityScore(b) - ocrQualityScore(a);
+}
+
+function ocrQualityScore(item) {
+    const compact = item.text.replace(/\s+/g, "");
+    const letters = [...compact].filter((character) => /\p{L}|\p{N}/u.test(character)).length;
+    const punctuation = Math.max(0, compact.length - letters);
+    const confidence = typeof item.confidence === "number" ? item.confidence : 0.8;
+    const area = item.coords.width * item.coords.height;
+    const lengthScore = Math.min(1, letters / 48);
+    const areaScore = Math.min(1, Math.sqrt(area) / 260);
+    const punctuationPenalty = compact.length > 0 ? (punctuation / compact.length) * 0.18 : 0;
+    const noisyTailPenalty = /[・.。…]{4,}|[「『(（]$|[A-Za-z]*[♀♂]+/u.test(compact) ? 0.16 : 0;
+
+    return confidence * 3 + lengthScore * 0.16 + areaScore * 0.05 - punctuationPenalty - noisyTailPenalty;
+}
+
+function isDuplicateRegion(a, b) {
+    const overlap = intersectionArea(a, b);
+
+    if (overlap <= 0) {
+        return false;
+    }
+
+    const smallerArea = Math.min(rectArea(a), rectArea(b));
+    return smallerArea > 0 && overlap / smallerArea > 0.45;
+}
+
+function intersectionArea(a, b) {
+    const width = Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x));
+    const height = Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+    return width * height;
+}
+
+function rectArea(rect) {
+    return rect.width * rect.height;
+}
+
+function ocrItemOrder(item) {
+    const value = Number(String(item.id).replace(/\D+/g, ""));
+    return Number.isFinite(value) ? value : 0;
 }

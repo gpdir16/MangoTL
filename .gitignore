@@ -7,3 +7,4 @@ server/.ocr-cache/
 server/.image-cache/
 _start.md
 test-images/*.jpeg
+test-images/tmp/

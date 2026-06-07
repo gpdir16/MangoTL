@@ -1,3 +1,4 @@
 node_modules
 *.min.js
 LICENSE
+test-images/tmp/

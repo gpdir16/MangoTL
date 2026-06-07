@@ -7,11 +7,12 @@
  * non-macOS deployment a font file should be bundled and registered via
  * `GlobalFonts` so output is consistent everywhere.
  */
-const FONT_FAMILY = "'Apple SD Gothic Neo'";
+const FONT_FAMILY = "'Apple SD Gothic Neo', 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif";
 const FONT_WEIGHT = 500;
 const MIN_FONT = 9;
 const MAX_FONT = 200;
 const LINE_HEIGHT = 1.22;
+const MAX_DIALOGUE_FONT = 26;
 
 export function renderTranslatedText(canvas, blocks) {
     let ctx;
@@ -39,8 +40,10 @@ function renderBlock(ctx, block) {
         return;
     }
 
-    const padX = Math.min(box.width * 0.06, 8);
-    const padY = Math.min(box.height * 0.06, 8);
+    const compactTextLength = [...text.replace(/\s+/g, "")].length;
+    const padRatio = compactTextLength > 34 ? 0.11 : 0.09;
+    const padX = Math.min(box.width * padRatio, 16);
+    const padY = Math.min(box.height * padRatio, 16);
     const maxWidth = box.width - padX * 2;
     const maxHeight = box.height - padY * 2;
 
@@ -49,7 +52,8 @@ function renderBlock(ctx, block) {
     }
 
     const textColor = block.style?.textColor || "#161616";
-    const strokeColor = block.style?.strokeColor || "#ffffff";
+    const strokeColor = block.style?.strokeColor ?? null;
+    fillRenderBackground(ctx, block, box);
 
     if (block.direction === "vertical") {
         renderVertical(ctx, [...text], box, maxWidth, maxHeight, textColor, strokeColor);
@@ -58,9 +62,18 @@ function renderBlock(ctx, block) {
     }
 }
 
+function fillRenderBackground(ctx, block, box) {
+    if (!block.renderBackground) {
+        return;
+    }
+
+    ctx.fillStyle = block.style?.background || "#ffffff";
+    ctx.fillRect(box.x, box.y, box.width, box.height);
+}
+
 function renderHorizontal(ctx, text, box, maxWidth, maxHeight, textColor, strokeColor) {
     let low = MIN_FONT;
-    let high = Math.ceil(Math.min(MAX_FONT, maxHeight));
+    let high = getMaxHorizontalFont(text, box, maxWidth, maxHeight);
     let best = null;
 
     while (low <= high) {
@@ -84,23 +97,45 @@ function renderHorizontal(ctx, text, box, maxWidth, maxHeight, textColor, stroke
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
     ctx.lineWidth = Math.max(1.5, best.size * 0.12);
-    ctx.strokeStyle = strokeColor;
     ctx.fillStyle = textColor;
+
+    if (strokeColor) {
+        ctx.strokeStyle = strokeColor;
+    }
 
     const centerX = box.x + box.width / 2;
     const startY = box.y + box.height / 2 - best.layout.totalHeight / 2 + best.layout.lineHeight / 2;
 
     for (let line = 0; line < best.layout.lines.length; line += 1) {
         const y = startY + line * best.layout.lineHeight;
-        ctx.strokeText(best.layout.lines[line], centerX, y);
+        if (strokeColor) {
+            ctx.strokeText(best.layout.lines[line], centerX, y);
+        }
         ctx.fillText(best.layout.lines[line], centerX, y);
     }
+}
+
+function getMaxHorizontalFont(text, box, maxWidth, maxHeight) {
+    const compactLength = [...text.replace(/\s+/g, "")].length;
+    const dialogueMax = compactLength > 42 ? 18 : compactLength > 26 ? 22 : MAX_DIALOGUE_FONT;
+    const naturalMax = Math.ceil(Math.min(MAX_FONT, maxHeight, dialogueMax));
+
+    if (compactLength <= 4) {
+        return Math.max(MIN_FONT, Math.min(naturalMax, Math.floor(maxHeight * 0.42), Math.floor(maxWidth * 0.28)));
+    }
+
+    if (box.height > box.width * 1.1) {
+        const widthRatio = box.y <= 1 ? 0.22 : 0.2;
+        return Math.max(MIN_FONT, Math.min(naturalMax, Math.floor(maxWidth * widthRatio), 20));
+    }
+
+    return naturalMax;
 }
 
 function layoutHorizontal(ctx, text, size, maxWidth) {
     setFont(ctx, size);
     const widthOf = (value) => ctx.measureText(value).width;
-    const words = text.split(/\s+/).filter(Boolean);
+    const words = tokenizeForWrapping(text);
     const lines = [];
     let current = "";
 
@@ -142,6 +177,17 @@ function layoutHorizontal(ctx, text, size, maxWidth) {
     const maxLineWidth = lines.reduce((widest, line) => Math.max(widest, widthOf(line)), 0);
 
     return { lines, lineHeight, totalHeight: lines.length * lineHeight, maxLineWidth };
+}
+
+function tokenizeForWrapping(text) {
+    const words = text.split(/\s+/).filter(Boolean);
+
+    if (words.length > 1) {
+        return words;
+    }
+
+    const compact = text.replace(/\s+/g, "");
+    return compact.length >= 12 ? [...compact] : [compact];
 }
 
 function breakWord(word, widthOf, maxWidth) {
@@ -191,8 +237,11 @@ function renderVertical(ctx, characters, box, maxWidth, maxHeight, textColor, st
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
     ctx.lineWidth = Math.max(1.5, best.size * 0.12);
-    ctx.strokeStyle = strokeColor;
     ctx.fillStyle = textColor;
+
+    if (strokeColor) {
+        ctx.strokeStyle = strokeColor;
+    }
 
     const { columns, columnWidth, step } = best.layout;
     const blockWidth = columns.length * columnWidth;
@@ -204,7 +253,9 @@ function renderVertical(ctx, characters, box, maxWidth, maxHeight, textColor, st
 
         for (let row = 0; row < columns[column].length; row += 1) {
             const y = startY + row * step;
-            ctx.strokeText(columns[column][row], x, y);
+            if (strokeColor) {
+                ctx.strokeText(columns[column][row], x, y);
+            }
             ctx.fillText(columns[column][row], x, y);
         }
     }

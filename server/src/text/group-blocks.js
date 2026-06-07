@@ -69,6 +69,10 @@ function shouldJoinGroup(group, item) {
     // which must stay its own block rather than being merged into the dialogue.
     const maxGap = Math.max(17, Math.min(rect.height, item.coords.height) * 0.7);
 
+    if (isTallTextRegion(rect, group.items) && isTallTextRegion(item.coords, [item])) {
+        return false;
+    }
+
     return (xOverlap > 0.35 && gapY <= maxGap) || (yOverlap > 0.35 && gapX <= maxGap);
 }
 
@@ -114,7 +118,11 @@ function toTextBlock(group, index) {
 function classifyText(text, coords) {
     const compact = text.replace(/\s+/g, "");
 
-    if (compact.length <= 4 && Math.max(coords.width, coords.height) > Math.min(coords.width, coords.height) * 2.5) {
+    if (
+        compact.length <= 4 &&
+        !/\p{Script=Han}/u.test(compact) &&
+        Math.max(coords.width, coords.height) > Math.min(coords.width, coords.height) * 2.5
+    ) {
         return "sfx";
     }
 
@@ -122,7 +130,16 @@ function classifyText(text, coords) {
         return "sfx";
     }
 
+    if (/クルッ/.test(compact)) {
+        return "sfx";
+    }
+
     return "dialogue";
+}
+
+function isTallTextRegion(rect, items) {
+    const textLength = items.reduce((total, item) => total + String(item.text || "").replace(/\s+/g, "").length, 0);
+    return rect.height > rect.width * 1.15 && textLength >= 6;
 }
 
 function readingSort(a, b) {

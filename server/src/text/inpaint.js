@@ -31,7 +31,7 @@ export function inpaintTextRegions(canvas, blocks) {
 
 export function encodeImage(canvas) {
     // @napi-rs/canvas takes JPEG quality on a 0–100 scale.
-    const buffer = canvas.toBuffer("image/jpeg", 92);
+    const buffer = canvas.toBuffer("image/jpeg", 96);
     return `data:image/jpeg;base64,${buffer.toString("base64")}`;
 }
 
@@ -44,12 +44,13 @@ function inpaintBlock(ctx, canvasWidth, canvasHeight, block) {
     // Pad the box just enough to catch a glyph's anti-aliased spill past the
     // detected bounds. A wider pad risks swallowing a separate nearby caption.
     const margin = 12;
-    const boxX = Math.round(block.coords.x);
-    const boxY = Math.round(block.coords.y);
+    const coords = block.eraseCoords || block.coords;
+    const boxX = Math.round(coords.x);
+    const boxY = Math.round(coords.y);
     const x = clamp(boxX - margin, 0, canvasWidth - 1);
     const y = clamp(boxY - margin, 0, canvasHeight - 1);
-    const width = clamp(Math.round(block.coords.width) + (boxX - x) + margin, 1, canvasWidth - x);
-    const height = clamp(Math.round(block.coords.height) + (boxY - y) + margin, 1, canvasHeight - y);
+    const width = clamp(Math.round(coords.width) + (boxX - x) + margin, 1, canvasWidth - x);
+    const height = clamp(Math.round(coords.height) + (boxY - y) + margin, 1, canvasHeight - y);
 
     if (width < 3 || height < 3) {
         return;
@@ -59,8 +60,8 @@ function inpaintBlock(ctx, canvasWidth, canvasHeight, block) {
     const innerBox = {
         x: boxX - x,
         y: boxY - y,
-        width: Math.round(block.coords.width),
-        height: Math.round(block.coords.height),
+        width: Math.round(coords.width),
+        height: Math.round(coords.height),
     };
 
     const imageData = ctx.getImageData(x, y, width, height);

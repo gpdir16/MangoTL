@@ -21,7 +21,7 @@ const modelPromises = new Map();
  */
 export async function recognizeWithMangaOcr(detection, ocrEngineConfig) {
     const model = await getModel(ocrEngineConfig);
-    const boxes = detection.boxes.filter((box) => box.width > 0 && box.height > 0);
+    const boxes = getRecognitionBoxes(detection);
 
     console.log(`${LOG} Recognizing ${boxes.length} regions...`);
     const start = Date.now();
@@ -38,6 +38,201 @@ export async function recognizeWithMangaOcr(detection, ocrEngineConfig) {
     console.log(`${LOG} Completed ${boxes.length} regions in ${Date.now() - start}ms`);
 
     return results;
+}
+
+function getRecognitionBoxes(detection) {
+    const sourceBoxes = detection.boxes.filter((box) => box.width > 0 && box.height > 0);
+    const bubbleBoxes = detectLightBubbleTextBoxes(detection.canvas);
+    const boxes = [...sourceBoxes];
+
+    for (const bubbleBox of bubbleBoxes) {
+        if (!boxes.some((box) => isSameRegion(box, bubbleBox))) {
+            boxes.push(bubbleBox);
+        }
+    }
+
+    return boxes;
+}
+
+function detectLightBubbleTextBoxes(canvas) {
+    let ctx;
+
+    try {
+        ctx = canvas.getContext("2d");
+    } catch {
+        return [];
+    }
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const imageArea = Math.max(1, width * height);
+    const { data } = ctx.getImageData(0, 0, width, height);
+    const visited = new Uint8Array(imageArea);
+    const candidates = [];
+
+    for (let seed = 0; seed < imageArea; seed += 1) {
+        if (visited[seed] || !isLightNeutralPixel(data, seed)) {
+            continue;
+        }
+
+        const component = floodLightComponent(data, width, height, seed, visited);
+        const componentArea = component.width * component.height;
+        const fillRatio = component.pixelIndexes.length / Math.max(1, componentArea);
+
+        if (
+            component.pixelIndexes.length < 450 ||
+            component.width < 20 ||
+            component.height < 20 ||
+            componentArea / imageArea >= 0.09 ||
+            fillRatio < 0.35
+        ) {
+            continue;
+        }
+
+        const textBox = getInteriorInkBox(data, width, height, component);
+
+        if (textBox && isLikelyVerticalTextBox(textBox) && !candidates.some((candidate) => isSameRegion(candidate, textBox))) {
+            candidates.push(textBox);
+        }
+    }
+
+    return candidates;
+}
+
+function floodLightComponent(data, width, height, seed, visited) {
+    const stack = [seed];
+    const pixelIndexes = [];
+    visited[seed] = 1;
+    let minX = width;
+    let minY = height;
+    let maxX = 0;
+    let maxY = 0;
+
+    while (stack.length > 0) {
+        const index = stack.pop();
+        const x = index % width;
+        const y = (index / width) | 0;
+        pixelIndexes.push(index);
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+
+        for (const neighbor of [
+            x > 0 ? index - 1 : -1,
+            x < width - 1 ? index + 1 : -1,
+            y > 0 ? index - width : -1,
+            y < height - 1 ? index + width : -1,
+        ]) {
+            if (neighbor >= 0 && !visited[neighbor] && isLightNeutralPixel(data, neighbor)) {
+                visited[neighbor] = 1;
+                stack.push(neighbor);
+            }
+        }
+    }
+
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
+        pixelIndexes,
+    };
+}
+
+function getInteriorInkBox(data, width, height, component) {
+    const componentMask = new Set(component.pixelIndexes);
+    const edgeInset = 7;
+    let minX = width;
+    let minY = height;
+    let maxX = -1;
+    let maxY = -1;
+    let inkPixels = 0;
+
+    for (let y = component.y + edgeInset; y < component.y + component.height - edgeInset; y += 1) {
+        for (let x = component.x + edgeInset; x < component.x + component.width - edgeInset; x += 1) {
+            const index = y * width + x;
+
+            if (!isDarkInkPixel(data, index) || !hasNearbyComponentPixel(componentMask, width, height, x, y)) {
+                continue;
+            }
+
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+            inkPixels += 1;
+        }
+    }
+
+    if (inkPixels < 18 || maxX < minX || maxY < minY) {
+        return null;
+    }
+
+    const padding = 4;
+    const x = Math.max(0, minX - padding);
+    const y = Math.max(0, minY - padding);
+
+    return {
+        x,
+        y,
+        width: Math.max(1, Math.min(width - x, maxX - minX + 1 + padding * 2)),
+        height: Math.max(1, Math.min(height - y, maxY - minY + 1 + padding * 2)),
+    };
+}
+
+function isLikelyVerticalTextBox(box) {
+    return box.height > box.width * 1.15;
+}
+
+function hasNearbyComponentPixel(componentMask, width, height, x, y) {
+    for (let dy = -2; dy <= 2; dy += 1) {
+        for (let dx = -2; dx <= 2; dx += 1) {
+            const xx = x + dx;
+            const yy = y + dy;
+
+            if (xx >= 0 && xx < width && yy >= 0 && yy < height && componentMask.has(yy * width + xx)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function isLightNeutralPixel(data, index) {
+    const offset = index * 4;
+    const r = data[offset];
+    const g = data[offset + 1];
+    const b = data[offset + 2];
+    const brightness = (r + g + b) / 3;
+    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+    return brightness > 246 && saturation < 18;
+}
+
+function isDarkInkPixel(data, index) {
+    const offset = index * 4;
+    const r = data[offset];
+    const g = data[offset + 1];
+    const b = data[offset + 2];
+    const brightness = (r + g + b) / 3;
+    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+    return brightness < 110 && saturation < 80;
+}
+
+function isSameRegion(a, b) {
+    const overlap = intersectionArea(a, b);
+    const areaA = a.width * a.height;
+    const areaB = b.width * b.height;
+    const smallerArea = Math.min(areaA, areaB);
+    const largerArea = Math.max(areaA, areaB);
+    return smallerArea > 0 && overlap / smallerArea > 0.85 && largerArea / smallerArea < 1.4;
+}
+
+function intersectionArea(a, b) {
+    const width = Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x));
+    const height = Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+    return width * height;
 }
 
 async function getModel(config) {

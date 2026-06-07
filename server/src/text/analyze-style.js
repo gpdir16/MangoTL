@@ -53,12 +53,14 @@ function analyzeBlock(block, ctx, canvasWidth, canvasHeight) {
 
     const background = medianColor(insidePixels);
     const ink = estimateInkColor(insidePixels, background);
-    const textColor = pickTextColor(ink, background);
+    const textColor = isLightNeutral(background) ? [26, 26, 26] : pickTextColor(ink, background);
+    const bubbleBox = findBubbleInteriorBox(ctx, box, canvasWidth, canvasHeight, background);
 
     return {
         background: toHex(background),
         textColor: toHex(textColor),
-        strokeColor: toHex(luminance(textColor) < 0.5 ? [255, 255, 255] : [18, 18, 18]),
+        strokeColor: isLightNeutral(background) ? null : toHex(luminance(textColor) < 0.5 ? [255, 255, 255] : [18, 18, 18]),
+        bubbleBox,
     };
 }
 
@@ -168,6 +170,145 @@ function neutralStyle() {
     return {
         background: "#ffffff",
         textColor: "#161616",
-        strokeColor: "#ffffff",
+        strokeColor: null,
+        bubbleBox: null,
+    };
+}
+
+function findBubbleInteriorBox(ctx, box, canvasWidth, canvasHeight, background) {
+    if (!isLightNeutral(background)) {
+        return null;
+    }
+
+    const margin = Math.round(Math.max(44, Math.min(120, Math.max(box.width, box.height) * 0.85)));
+    const windowBox = {
+        x: clamp(box.x - margin, 0, canvasWidth - 1),
+        y: clamp(box.y - margin, 0, canvasHeight - 1),
+        width: clamp(box.width + margin * 2, 1, canvasWidth - clamp(box.x - margin, 0, canvasWidth - 1)),
+        height: clamp(box.height + margin * 2, 1, canvasHeight - clamp(box.y - margin, 0, canvasHeight - 1)),
+    };
+
+    const { data } = ctx.getImageData(windowBox.x, windowBox.y, windowBox.width, windowBox.height);
+    const localBox = {
+        x: box.x - windowBox.x,
+        y: box.y - windowBox.y,
+        width: box.width,
+        height: box.height,
+    };
+    const seed = findBackgroundSeed(data, windowBox.width, windowBox.height, localBox, background);
+
+    if (seed < 0) {
+        return null;
+    }
+
+    const region = floodSimilarBackground(data, windowBox.width, windowBox.height, seed, background);
+    const regionBox = regionBounds(region, windowBox.width, windowBox.height);
+
+    if (!regionBox) {
+        return null;
+    }
+
+    const expanded = {
+        x: windowBox.x + regionBox.x,
+        y: windowBox.y + regionBox.y,
+        width: regionBox.width,
+        height: regionBox.height,
+    };
+
+    const originalArea = box.width * box.height;
+    const expandedArea = expanded.width * expanded.height;
+
+    if (expandedArea < originalArea * 1.18 || expandedArea > originalArea * 14) {
+        return null;
+    }
+
+    return expanded;
+}
+
+function isLightNeutral(color) {
+    const brightness = (color[0] + color[1] + color[2]) / 3;
+    const saturation = Math.max(...color) - Math.min(...color);
+    return brightness > 226 && saturation < 38;
+}
+
+function findBackgroundSeed(data, width, height, box, background) {
+    const startX = clamp(Math.floor(box.x), 0, width - 1);
+    const startY = clamp(Math.floor(box.y), 0, height - 1);
+    const endX = clamp(Math.ceil(box.x + box.width), startX + 1, width);
+    const endY = clamp(Math.ceil(box.y + box.height), startY + 1, height);
+
+    for (let y = startY; y < endY; y += 2) {
+        for (let x = startX; x < endX; x += 2) {
+            const index = y * width + x;
+
+            if (isBackgroundPixel(data, index, background)) {
+                return index;
+            }
+        }
+    }
+
+    return -1;
+}
+
+function floodSimilarBackground(data, width, height, seed, background) {
+    const visited = new Uint8Array(width * height);
+    const stack = [seed];
+    visited[seed] = 1;
+
+    while (stack.length > 0) {
+        const index = stack.pop();
+        const x = index % width;
+        const y = (index / width) | 0;
+
+        for (const neighbor of [
+            x > 0 ? index - 1 : -1,
+            x < width - 1 ? index + 1 : -1,
+            y > 0 ? index - width : -1,
+            y < height - 1 ? index + width : -1,
+        ]) {
+            if (neighbor >= 0 && !visited[neighbor] && isBackgroundPixel(data, neighbor, background)) {
+                visited[neighbor] = 1;
+                stack.push(neighbor);
+            }
+        }
+    }
+
+    return visited;
+}
+
+function isBackgroundPixel(data, index, background) {
+    const offset = index * 4;
+    const color = [data[offset], data[offset + 1], data[offset + 2]];
+    return colorDistance(color, background) < 44;
+}
+
+function regionBounds(region, width, height) {
+    let minX = width;
+    let minY = height;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let index = 0; index < region.length; index += 1) {
+        if (!region[index]) {
+            continue;
+        }
+
+        const x = index % width;
+        const y = (index / width) | 0;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+    }
+
+    if (maxX < minX || maxY < minY) {
+        return null;
+    }
+
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
     };
 }
