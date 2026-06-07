@@ -4,7 +4,7 @@ English | [Korean](README_ko.md)
 
 MangoTL is an AI-powered manga, manhwa, webtoon, and comic image translator. It ships as a browser extension plus a self-hostable local server. The extension reads the selected image and uploads the image bytes to the server, then the server runs OCR, translates detected text with an OpenAI-compatible provider, and returns a rendered translated image.
 
-[View on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/) (As of 26/05/31, the add-on is still under review)
+[View on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/)
 
 ## Add-on Screenshot
 
