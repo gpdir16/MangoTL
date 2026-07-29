@@ -30,6 +30,7 @@ You can check the full list below.
 ### Websites
 
 - Pixiv
+- X
 
 ### Source Languages (comic language)
 

@@ -1,0 +1,28 @@
+{
+    "id": "x",
+    "kind": "website",
+    "name": "X",
+    "type": "website",
+    "settings": {
+        "sourceLanguage": "en",
+        "hostPatterns": ["x.com", "*.x.com"],
+        "imageHostPatterns": ["pbs.twimg.com", "*.pbs.twimg.com"],
+        "imageSelectors": ["img[src*='pbs.twimg.com']", "img[src*='twimg.com']"],
+        "imageFetch": {
+            "referrer": "https://x.com/",
+            "referrerPolicy": "no-referrer-when-downgrade"
+        },
+        "includeUrlPatterns": ["/media/"],
+        "minImageWidth": 300,
+        "minImageHeight": 300,
+        "urlNormalizer": {
+            "stripHash": true,
+            "stripQuery": true
+        },
+        "imageKeyPattern": {
+            "match": "/media/[^/]+/(.+?)(?:\\.(?:jpg|jpeg|png|webp))$",
+            "group": 1,
+            "flags": "i"
+        }
+    }
+}
