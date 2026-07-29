@@ -15,6 +15,8 @@ browser.runtime.onInstalled.addListener(async () => {
     await removeStoredSourceLanguagePreferences();
 });
 
+const activeTranslations = new Map();
+
 browser.runtime.onMessage.addListener((message) => {
     if (message?.type === "MANGOTL_OPEN_OPTIONS") {
         return browser.runtime.openOptionsPage().then(
@@ -25,6 +27,35 @@ browser.runtime.onMessage.addListener((message) => {
 
     if (message?.type === "MANGOTL_FETCH_IMAGE") {
         return fetchImageBytes(message.url, message.imageFetch);
+    }
+
+    if (message?.type === "MANGOTL_FETCH_CONFIG") {
+        return proxyServerConfig(message.serverUrl);
+    }
+
+    if (message?.type === "MANGOTL_TRANSLATE_IMAGE") {
+        const existing = activeTranslations.get(message.translationKey);
+        if (existing) {
+            existing.abort();
+        }
+
+        const controller = new AbortController();
+        activeTranslations.set(message.translationKey, controller);
+
+        return proxyTranslateImage(message, controller.signal).finally(() => {
+            if (activeTranslations.get(message.translationKey) === controller) {
+                activeTranslations.delete(message.translationKey);
+            }
+        });
+    }
+
+    if (message?.type === "MANGOTL_ABORT_TRANSLATION") {
+        const controller = activeTranslations.get(message.translationKey);
+        if (controller) {
+            controller.abort();
+            activeTranslations.delete(message.translationKey);
+        }
+        return { ok: true };
     }
 
     return undefined;
@@ -52,6 +83,53 @@ async function fetchImageBytes(url, imageFetch = {}) {
     return {
         buffer: await response.arrayBuffer(),
         contentType,
+    };
+}
+
+async function proxyServerConfig(serverUrl) {
+    const response = await fetch(`${serverUrl}/api/config`);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+    return response.json();
+}
+
+async function proxyTranslateImage(params, signal) {
+    const { serverUrl, imageUrl, imageFetch, imageId, sourceLanguage, targetLanguage, websiteId } = params;
+    const image = await fetchImageBytes(imageUrl, imageFetch);
+    const formData = new FormData();
+    formData.append("image", new Blob([image.buffer], { type: image.contentType }), "image");
+    formData.append("imageId", imageId || "image");
+
+    const query = new URLSearchParams();
+    if (sourceLanguage) query.set("source", sourceLanguage);
+    if (targetLanguage) query.set("target", targetLanguage);
+    if (websiteId) query.set("websiteId", websiteId);
+    const queryString = query.toString();
+
+    const response = await fetch(`${serverUrl}/api/translate${queryString ? `?${queryString}` : ""}`, {
+        method: "POST",
+        body: formData,
+        signal,
+    });
+
+    const responseText = await response.text();
+    let payload = null;
+    try {
+        payload = JSON.parse(responseText);
+    } catch {}
+
+    if (!response.ok) {
+        throw new Error(payload?.message || responseText || `Server error: ${response.status}`);
+    }
+
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        throw new Error("The server response did not include a translation result.");
+    }
+
+    return {
+        ...payload,
+        imageId: payload.imageId || imageId || null,
     };
 }
 

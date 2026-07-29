@@ -186,13 +186,10 @@ async function refreshConfiguration() {
 }
 
 async function fetchServerConfig(serverUrl) {
-    const response = await fetch(`${serverUrl}/api/config`);
-
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-    }
-
-    const config = await response.json();
+    const config = await browser.runtime.sendMessage({
+        type: "MANGOTL_FETCH_CONFIG",
+        serverUrl,
+    });
 
     return normalizeServerConfig(config);
 }
@@ -893,65 +890,47 @@ async function translateImageFromControl(control, sourceLanguage) {
 }
 
 async function requestImageTranslation(entry, sourceLanguage, signal) {
-    const query = new URLSearchParams();
+    const translationKey = getTranslationKey(entry, sourceLanguage);
+    const params = {
+        serverUrl: overlayState.serverUrl,
+        imageUrl: entry.url,
+        imageFetch: overlayState.website?.imageFetch || {},
+        imageId: entry.identity || entry.key || "image",
+        sourceLanguage: sourceLanguage,
+        targetLanguage: overlayState.targetLanguage,
+        websiteId: overlayState.website?.id,
+        translationKey,
+    };
 
-    if (overlayState.website?.id) {
-        query.set("websiteId", overlayState.website.id);
-    }
-
-    if (sourceLanguage) {
-        query.set("source", sourceLanguage);
-    }
-
-    if (overlayState.targetLanguage) {
-        query.set("target", overlayState.targetLanguage);
-    }
-
-    const queryString = query.toString();
-    const image = await readImageBytes(entry.url);
-    const formData = new FormData();
-
-    formData.append("image", new Blob([image.buffer], { type: image.contentType }), getImageFileName(entry, image.contentType));
-    formData.append("imageId", entry.identity || entry.key || "image");
-
-    const response = await fetch(`${overlayState.serverUrl}/api/translate${queryString ? `?${queryString}` : ""}`, {
-        method: "POST",
-        body: formData,
-        signal,
+    signal.addEventListener("abort", () => {
+        browser.runtime
+            .sendMessage({
+                type: "MANGOTL_ABORT_TRANSLATION",
+                translationKey,
+            })
+            .catch(() => {});
     });
 
-    const responseText = await response.text();
-    const payload = parseJsonResponse(responseText);
-
-    if (!response.ok) {
-        const message = payload?.message || responseText || t("contentServerError", response.status);
-        throw new Error(message);
+    let payload;
+    try {
+        payload = await browser.runtime.sendMessage({
+            type: "MANGOTL_TRANSLATE_IMAGE",
+            ...params,
+        });
+    } catch (error) {
+        if (signal?.aborted) {
+            throw new DOMException("Translation stopped", "AbortError");
+        }
+        throw error;
     }
 
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        throw new Error(t("contentMissingResultError"));
+    if (signal?.aborted) {
+        throw new DOMException("Translation stopped", "AbortError");
     }
 
     return {
         ...payload,
         imageId: payload.imageId || entry.identity || entry.key || null,
-    };
-}
-
-async function readImageBytes(url) {
-    const response = await browser.runtime.sendMessage({
-        type: "MANGOTL_FETCH_IMAGE",
-        url,
-        imageFetch: overlayState.website?.imageFetch || {},
-    });
-
-    if (!response?.buffer) {
-        throw new Error(t("contentMissingImageError"));
-    }
-
-    return {
-        buffer: response.buffer,
-        contentType: response.contentType || "application/octet-stream",
     };
 }
 
@@ -1120,8 +1099,14 @@ function removeControl(image) {
 }
 
 function abortInFlightTranslations() {
-    for (const controller of overlayState.inFlightByKey.values()) {
+    for (const [translationKey, controller] of overlayState.inFlightByKey.entries()) {
         controller.abort();
+        browser.runtime
+            .sendMessage({
+                type: "MANGOTL_ABORT_TRANSLATION",
+                translationKey,
+            })
+            .catch(() => {});
     }
 
     overlayState.inFlightByKey.clear();
