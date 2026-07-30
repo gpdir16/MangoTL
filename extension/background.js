@@ -109,9 +109,7 @@ async function proxyServerConfig(serverUrl) {
 
 async function proxyTranslateImage(params, signal) {
     const { serverUrl, imageUrl, imageDataUrl, imageFetch, imageFetchCredentials, imageId, sourceLanguage, targetLanguage, websiteId } = params;
-    const image = imageDataUrl
-        ? await fetchImageBytesFromDataUrl(imageDataUrl)
-        : await fetchImageBytes(imageUrl, imageFetch, imageFetchCredentials);
+    const image = imageDataUrl ? await fetchImageBytesFromDataUrl(imageDataUrl) : await fetchImageBytes(imageUrl, imageFetch, imageFetchCredentials);
     const formData = new FormData();
     formData.append("image", new Blob([image.buffer], { type: image.contentType }), "image");
     formData.append("imageId", imageId || "image");
