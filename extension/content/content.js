@@ -84,20 +84,30 @@ function handleDocumentKeydown(event) {
 }
 
 function installSpaNavigationGuards() {
-    const scheduleRefresh = () => scheduleConfigurationRefresh(120);
+    const onNavigate = () => {
+        clearRenderedOverlays();
+        scheduleConfigurationRefresh(120);
+    };
 
     for (const methodName of ["pushState", "replaceState"]) {
         const original = history[methodName];
 
         history[methodName] = function patchedHistoryMethod(...args) {
             const result = original.apply(this, args);
-            setTimeout(scheduleRefresh, 0);
+            setTimeout(onNavigate, 0);
             return result;
         };
     }
 
-    window.addEventListener("popstate", scheduleRefresh);
-    window.addEventListener("hashchange", scheduleRefresh);
+    window.addEventListener("popstate", onNavigate);
+    window.addEventListener("hashchange", onNavigate);
+}
+
+function clearRenderedOverlays() {
+    for (const control of overlayState.controlsByImage.values()) {
+        control.rendered?.remove();
+        control.rendered = null;
+    }
 }
 
 function installDomChangeGuard() {
