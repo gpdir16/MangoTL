@@ -1,5 +1,8 @@
 const DEFAULT_SETTINGS = {
     serverUrl: "http://localhost:8787",
+    imageFetchStrategy: "canvas-first",
+    imageFetchCredentials: "omit",
+    canvasQuality: 0.95,
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 const { languageLabel, localizeDocument, t } = MangoTLI18n;
@@ -12,6 +15,9 @@ const state = {
 const form = document.getElementById("options-form");
 const serverUrl = document.getElementById("server-url");
 const targetLanguage = document.getElementById("target-language");
+const imageFetchStrategy = document.getElementById("image-fetch-strategy");
+const imageFetchCredentials = document.getElementById("image-fetch-credentials");
+const canvasQuality = document.getElementById("canvas-quality");
 const serverStatus = document.getElementById("server-status");
 const saveStatus = document.getElementById("save-status");
 
@@ -27,6 +33,9 @@ async function restoreOptions() {
     };
 
     serverUrl.value = settings.serverUrl;
+    imageFetchStrategy.value = settings.imageFetchStrategy || DEFAULT_SETTINGS.imageFetchStrategy;
+    imageFetchCredentials.value = settings.imageFetchCredentials || DEFAULT_SETTINGS.imageFetchCredentials;
+    canvasQuality.value = parseFloat(settings.canvasQuality) || DEFAULT_SETTINGS.canvasQuality;
     state.languagePreferences = await readLanguagePreferences();
     await refreshServerConfig(settings.serverUrl);
 }
@@ -35,8 +44,12 @@ async function saveOptions(event) {
     event.preventDefault();
 
     const nextServerUrl = normalizeServerUrl(serverUrl.value);
+
     await browser.storage.local.set({
         serverUrl: nextServerUrl,
+        imageFetchStrategy: imageFetchStrategy.value,
+        imageFetchCredentials: imageFetchCredentials.value,
+        canvasQuality: Math.min(Math.max(parseFloat(canvasQuality.value) || DEFAULT_SETTINGS.canvasQuality, 0.1), 1),
     });
 
     if (targetLanguage.value) {

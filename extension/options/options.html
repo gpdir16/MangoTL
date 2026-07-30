@@ -32,6 +32,40 @@
                     </label>
                 </section>
 
+                <details class="advanced-settings">
+                    <summary data-i18n="optionsAdvancedSettings">Advanced Settings</summary>
+
+                    <section class="image-settings" aria-label="Image settings" data-i18n-attr="aria-label:optionsImageSettingsAria">
+                        <label>
+                            <span data-i18n="optionsImageFetchStrategyLabel">Image Fetch Strategy</span>
+                            <select id="image-fetch-strategy">
+                                <option value="canvas-first" data-i18n="optionsImageFetchStrategyCanvasFirst">Canvas first, fallback to network (Recommended)</option>
+                                <option value="canvas-only" data-i18n="optionsImageFetchStrategyCanvasOnly">Canvas capture only (no fallback)</option>
+                                <option value="fetch-only" data-i18n="optionsImageFetchStrategyFetchOnly">Network fetch only (no canvas)</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span data-i18n="optionsImageFetchCredentialsLabel">Fetch Credentials (cookies)</span>
+                            <select id="image-fetch-credentials">
+                                <option value="omit" data-i18n="optionsImageFetchCredentialsOmit">Omit (no cookies) (Recommended)</option>
+                                <option value="same-origin" data-i18n="optionsImageFetchCredentialsSameOrigin">Same-origin only</option>
+                                <option value="include" data-i18n="optionsImageFetchCredentialsInclude">Include (cross-origin cookies)</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span data-i18n="optionsCanvasQualityLabel">Canvas JPEG Quality</span>
+                            <input
+                                id="canvas-quality"
+                                type="number"
+                                min="0.1"
+                                max="1"
+                                step="0.05"
+                                value="0.95"
+                            />
+                        </label>
+                    </section>
+                </details>
+
                 <p id="server-status" role="status" data-i18n="optionsServerStatusLoading">Loading server config...</p>
 
                 <div class="actions">

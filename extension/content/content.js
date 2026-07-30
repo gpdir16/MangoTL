@@ -1,5 +1,8 @@
 const DEFAULT_SETTINGS = {
     serverUrl: "http://localhost:8787",
+    imageFetchStrategy: "canvas-first",
+    imageFetchCredentials: "omit",
+    canvasQuality: 0.95,
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 const { languageLabel, t } = MangoTLI18n;
@@ -11,6 +14,9 @@ const overlayState = {
     serverAvailable: true,
     languagePreferences: {},
     website: null,
+    imageFetchStrategy: DEFAULT_SETTINGS.imageFetchStrategy,
+    imageFetchCredentials: DEFAULT_SETTINGS.imageFetchCredentials,
+    canvasQuality: DEFAULT_SETTINGS.canvasQuality,
     sourceLanguage: "",
     targetLanguage: "",
     translationContext: "",
@@ -43,7 +49,7 @@ function handleStorageChange(changes, areaName) {
         return;
     }
 
-    if (changes.serverUrl || changes[LANGUAGE_PREFS_KEY]) {
+    if (changes.serverUrl || changes.imageFetchStrategy || changes.imageFetchCredentials || changes.canvasQuality || changes[LANGUAGE_PREFS_KEY]) {
         scheduleConfigurationRefresh();
     }
 }
@@ -167,6 +173,9 @@ async function refreshConfiguration() {
     overlayState.serverAvailable = serverAvailable;
     overlayState.languagePreferences = languagePreferences;
     overlayState.website = website || null;
+    overlayState.imageFetchStrategy = settings.imageFetchStrategy || DEFAULT_SETTINGS.imageFetchStrategy;
+    overlayState.imageFetchCredentials = settings.imageFetchCredentials || DEFAULT_SETTINGS.imageFetchCredentials;
+    overlayState.canvasQuality = parseFloat(settings.canvasQuality) || DEFAULT_SETTINGS.canvasQuality;
     overlayState.sourceLanguage = sourceLanguage;
     overlayState.targetLanguage = targetLanguage;
     overlayState.translationContext = translationContext;
@@ -360,7 +369,7 @@ function matchesUrlFilters(url, website) {
     return !excludePatterns.some((pattern) => url.includes(pattern));
 }
 
-function captureImageAsDataUrl(image, website) {
+function captureImageAsDataUrl(image, quality) {
     try {
         if (!(image instanceof HTMLImageElement) || !image.complete || !image.naturalWidth || !image.naturalHeight) {
             return null;
@@ -376,7 +385,7 @@ function captureImageAsDataUrl(image, website) {
 
         ctx.drawImage(image, 0, 0);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+        const dataUrl = canvas.toDataURL("image/jpeg", Math.min(Math.max(quality, 0.1), 1));
         if (!dataUrl || dataUrl === "data:,") {
             return null;
         }
@@ -918,13 +927,23 @@ async function translateImageFromControl(control, sourceLanguage) {
 
 async function requestImageTranslation(entry, sourceLanguage, signal) {
     const translationKey = getTranslationKey(entry, sourceLanguage);
+    const strategy = overlayState.imageFetchStrategy;
 
-    const dataUrl = captureImageAsDataUrl(entry.element, overlayState.website);
+    let dataUrl = null;
+
+    if (strategy === "canvas-first" || strategy === "canvas-only") {
+        dataUrl = captureImageAsDataUrl(entry.element, overlayState.canvasQuality);
+
+        if (!dataUrl && strategy === "canvas-only") {
+            throw new Error(t("contentMissingImageError"));
+        }
+    }
 
     const params = {
         serverUrl: overlayState.serverUrl,
         imageUrl: entry.url,
         imageFetch: overlayState.website?.imageFetch || {},
+        imageFetchCredentials: overlayState.imageFetchCredentials,
         imageId: entry.identity || entry.key || "image",
         sourceLanguage: sourceLanguage,
         targetLanguage: overlayState.targetLanguage,

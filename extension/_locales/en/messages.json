@@ -125,5 +125,38 @@
     },
     "languageSwedish": {
         "message": "Swedish"
+    },
+    "optionsImageSettingsAria": {
+        "message": "Image settings"
+    },
+    "optionsAdvancedSettings": {
+        "message": "Advanced Settings"
+    },
+    "optionsImageFetchStrategyLabel": {
+        "message": "Image Fetch Strategy"
+    },
+    "optionsImageFetchStrategyCanvasFirst": {
+        "message": "Image capture first, fallback to network (Recommended)"
+    },
+    "optionsImageFetchStrategyCanvasOnly": {
+        "message": "Image capture only"
+    },
+    "optionsImageFetchStrategyFetchOnly": {
+        "message": "Network fetch only"
+    },
+    "optionsImageFetchCredentialsLabel": {
+        "message": "Fetch Credentials"
+    },
+    "optionsImageFetchCredentialsOmit": {
+        "message": "No cookie (Recommended)"
+    },
+    "optionsImageFetchCredentialsSameOrigin": {
+        "message": "Same-origin cookies"
+    },
+    "optionsImageFetchCredentialsInclude": {
+        "message": "Same-origin and cross-origin cookies"
+    },
+    "optionsCanvasQualityLabel": {
+        "message": "Image Capture JPEG Quality"
     }
 }

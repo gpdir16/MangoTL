@@ -1,5 +1,8 @@
 const DEFAULT_SETTINGS = {
     serverUrl: "http://localhost:8787",
+    imageFetchStrategy: "canvas-first",
+    imageFetchCredentials: "omit",
+    canvasQuality: 0.95,
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 
@@ -61,13 +64,14 @@ browser.runtime.onMessage.addListener((message) => {
     return undefined;
 });
 
-async function fetchImageBytes(url, imageFetch = {}) {
+async function fetchImageBytes(url, imageFetch = {}, credentials) {
     const response = await fetch(url, {
         headers: {
             Accept: "image/avif,image/webp,image/png,image/jpeg,image/*,*/*;q=0.8",
         },
         referrer: imageFetch.referrer || undefined,
         referrerPolicy: imageFetch.referrerPolicy || undefined,
+        credentials: credentials || "omit",
     });
 
     if (!response.ok) {
@@ -104,10 +108,10 @@ async function proxyServerConfig(serverUrl) {
 }
 
 async function proxyTranslateImage(params, signal) {
-    const { serverUrl, imageUrl, imageDataUrl, imageFetch, imageId, sourceLanguage, targetLanguage, websiteId } = params;
+    const { serverUrl, imageUrl, imageDataUrl, imageFetch, imageFetchCredentials, imageId, sourceLanguage, targetLanguage, websiteId } = params;
     const image = imageDataUrl
         ? await fetchImageBytesFromDataUrl(imageDataUrl)
-        : await fetchImageBytes(imageUrl, imageFetch);
+        : await fetchImageBytes(imageUrl, imageFetch, imageFetchCredentials);
     const formData = new FormData();
     formData.append("image", new Blob([image.buffer], { type: image.contentType }), "image");
     formData.append("imageId", imageId || "image");

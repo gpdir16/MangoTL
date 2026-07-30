@@ -125,5 +125,38 @@
     },
     "languageSwedish": {
         "message": "스웨덴어"
+    },
+    "optionsImageSettingsAria": {
+        "message": "이미지 설정"
+    },
+    "optionsAdvancedSettings": {
+        "message": "고급 설정"
+    },
+    "optionsImageFetchStrategyLabel": {
+        "message": "이미지 가져오기 방식"
+    },
+    "optionsImageFetchStrategyCanvasFirst": {
+        "message": "이미지 캡처 우선, 실패시 네트워크 요청 (권장)"
+    },
+    "optionsImageFetchStrategyCanvasOnly": {
+        "message": "이미지 캡처만"
+    },
+    "optionsImageFetchStrategyFetchOnly": {
+        "message": "네트워크 요청만"
+    },
+    "optionsImageFetchCredentialsLabel": {
+        "message": "네트워크 요청 인증정보"
+    },
+    "optionsImageFetchCredentialsOmit": {
+        "message": "쿠키 없음 (권장)"
+    },
+    "optionsImageFetchCredentialsSameOrigin": {
+        "message": "동일 출처 쿠키 포함"
+    },
+    "optionsImageFetchCredentialsInclude": {
+        "message": "동일 출처 쿠키 및 교차 출처 쿠키 포함"
+    },
+    "optionsCanvasQualityLabel": {
+        "message": "이미지 캡처 JPEG 품질"
     }
 }

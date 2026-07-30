@@ -12,6 +12,7 @@ body {
     margin: 0;
     color: white;
     background: black;
+    overflow-y: scroll;
 }
 
 .options-shell {
@@ -35,7 +36,7 @@ h1 {
 
 form {
     display: grid;
-    gap: 18px;
+    gap: 14px;
 }
 
 label {
@@ -83,8 +84,35 @@ button {
     font-size: 13px;
 }
 
+.image-settings {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 10px;
+}
+
+.advanced-settings {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.advanced-settings summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: rgb(200, 200, 200);
+    user-select: none;
+}
+
+.advanced-settings summary:hover {
+    color: white;
+}
+
 @media (max-width: 520px) {
-    .language-fields {
+    .language-fields,
+    .image-settings {
         grid-template-columns: 1fr;
     }
 }
