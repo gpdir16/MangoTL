@@ -8,10 +8,10 @@ export async function translateWithOpenAICompatible({ provider, model, sourceLan
         return [];
     }
 
-    const apiKey = process.env[provider.apiKeyEnv];
+    const apiKey = process.env[provider.apiKeyEnv] || (provider.apiKeyOptional ? provider.defaultApiKey || "" : null);
     const baseUrl = provider.baseUrl;
 
-    if (!apiKey) {
+    if (!apiKey && !provider.apiKeyOptional) {
         throw new HttpError(503, "ai_api_key_missing", `Missing API key env: ${provider.apiKeyEnv}`);
     }
 

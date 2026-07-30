@@ -1,0 +1,15 @@
+{
+    "id": "ollama",
+    "kind": "provider",
+    "name": "Ollama (local)",
+    "type": "openai-compatible",
+    "settings": {
+        "baseUrl": "http://localhost:11434/v1",
+        "apiKeyEnv": "OLLAMA_API_KEY",
+        "apiKeyOptional": true,
+        "defaultApiKey": "ollama",
+        "responseFormat": {
+            "type": "json_object"
+        }
+    }
+}
