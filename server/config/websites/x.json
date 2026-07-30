@@ -13,8 +13,8 @@
             "referrerPolicy": "no-referrer-when-downgrade"
         },
         "includeUrlPatterns": ["/media/"],
-        "minImageWidth": 300,
-        "minImageHeight": 300,
+        "minImageWidth": 200,
+        "minImageHeight": 200,
         "urlNormalizer": {
             "stripHash": true,
             "stripQuery": true

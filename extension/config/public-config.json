@@ -48,8 +48,8 @@
             "imageFetch": { "referrer": "https://x.com/", "referrerPolicy": "no-referrer-when-downgrade" },
             "includeUrlPatterns": ["/media/"],
             "excludeUrlPatterns": [],
-            "minImageWidth": 300,
-            "minImageHeight": 300,
+            "minImageWidth": 200,
+            "minImageHeight": 200,
             "urlNormalizer": { "stripHash": true, "stripQuery": true },
             "imageKeyPattern": { "match": "/media/[^/]+/(.+?)(?:\\.(?:jpg|jpeg|png|webp))$", "group": 1, "flags": "i" }
         }
