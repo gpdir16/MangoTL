@@ -86,6 +86,15 @@ async function fetchImageBytes(url, imageFetch = {}) {
     };
 }
 
+async function fetchImageBytesFromDataUrl(dataUrl) {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return {
+        buffer: await blob.arrayBuffer(),
+        contentType: blob.type || "image/jpeg",
+    };
+}
+
 async function proxyServerConfig(serverUrl) {
     const response = await fetch(`${serverUrl}/api/config`);
     if (!response.ok) {
@@ -95,8 +104,10 @@ async function proxyServerConfig(serverUrl) {
 }
 
 async function proxyTranslateImage(params, signal) {
-    const { serverUrl, imageUrl, imageFetch, imageId, sourceLanguage, targetLanguage, websiteId } = params;
-    const image = await fetchImageBytes(imageUrl, imageFetch);
+    const { serverUrl, imageUrl, imageDataUrl, imageFetch, imageId, sourceLanguage, targetLanguage, websiteId } = params;
+    const image = imageDataUrl
+        ? await fetchImageBytesFromDataUrl(imageDataUrl)
+        : await fetchImageBytes(imageUrl, imageFetch);
     const formData = new FormData();
     formData.append("image", new Blob([image.buffer], { type: image.contentType }), "image");
     formData.append("imageId", imageId || "image");

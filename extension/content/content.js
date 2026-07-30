@@ -360,6 +360,33 @@ function matchesUrlFilters(url, website) {
     return !excludePatterns.some((pattern) => url.includes(pattern));
 }
 
+function captureImageAsDataUrl(image, website) {
+    try {
+        if (!(image instanceof HTMLImageElement) || !image.complete || !image.naturalWidth || !image.naturalHeight) {
+            return null;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            return null;
+        }
+
+        ctx.drawImage(image, 0, 0);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+        if (!dataUrl || dataUrl === "data:,") {
+            return null;
+        }
+
+        return dataUrl;
+    } catch {
+        return null;
+    }
+}
+
 function scheduleOverlayUpdate() {
     if (overlayState.overlayUpdateFrame !== null) {
         return;
@@ -891,6 +918,9 @@ async function translateImageFromControl(control, sourceLanguage) {
 
 async function requestImageTranslation(entry, sourceLanguage, signal) {
     const translationKey = getTranslationKey(entry, sourceLanguage);
+
+    const dataUrl = captureImageAsDataUrl(entry.element, overlayState.website);
+
     const params = {
         serverUrl: overlayState.serverUrl,
         imageUrl: entry.url,
@@ -901,6 +931,10 @@ async function requestImageTranslation(entry, sourceLanguage, signal) {
         websiteId: overlayState.website?.id,
         translationKey,
     };
+
+    if (dataUrl) {
+        params.imageDataUrl = dataUrl;
+    }
 
     signal.addEventListener("abort", () => {
         browser.runtime
