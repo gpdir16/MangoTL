@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -59,6 +59,13 @@ export async function loadUserSettings() {
 
     await writeFile(settingsPath, `${JSON.stringify(defaultSettings, null, 4)}\n`);
     return defaultSettings;
+}
+
+export async function saveUserSettings(settings) {
+    const settingsPath = path.join(serverRoot, "secrets/settings.json");
+    const tmpPath = `${settingsPath}.tmp`;
+    await writeFile(tmpPath, `${JSON.stringify(settings, null, 4)}\n`);
+    await rename(tmpPath, settingsPath);
 }
 
 export function applyUserSettings(staticConfig, settings) {
@@ -156,7 +163,7 @@ function relativeConfigPath(filePath) {
     return path.relative(serverRoot, filePath);
 }
 
-function getPositiveInteger(...values) {
+export function getPositiveInteger(...values) {
     for (const value of values) {
         const parsed = Number(value);
 

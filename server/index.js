@@ -1,5 +1,12 @@
 import { Elysia, t } from "elysia";
-import { loadStaticServerConfig, loadUserSettings, applyUserSettings } from "./src/config/load-server-config.js";
+import { readFile } from "node:fs/promises";
+import {
+    loadStaticServerConfig,
+    loadUserSettings,
+    applyUserSettings,
+    saveUserSettings,
+    getPositiveInteger,
+} from "./src/config/load-server-config.js";
 import { buildPublicConfig } from "./src/config/public-config.js";
 import { normalizeTranslateRequest } from "./src/http/normalize-translate-request.js";
 import { translateImage } from "./src/pipeline/translate-image.js";
@@ -11,7 +18,7 @@ const staticConfig = await loadStaticServerConfig();
 const initialConfig = applyUserSettings(staticConfig, await loadUserSettings());
 
 if (!initialConfig.defaultProvider || !initialConfig.defaultModel) {
-    console.warn("[MangoTL] Warning: no AI provider/model configured yet. Server stays up — set provider/model in server/secrets/settings.json.");
+    console.warn("[MangoTL] Warning: no AI provider/model configured yet. Server stays up — configure it at http://localhost:8787/config.");
 }
 
 const port = initialConfig.port;
@@ -47,6 +54,48 @@ const app = new Elysia()
         };
     })
     .get("/api/config", async () => buildPublicConfig(await getRequestConfig()))
+    .get(
+        "/config",
+        async () =>
+            new Response(await readFile(new URL("./public/config.html", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/html; charset=utf-8" },
+            }),
+    )
+    .get("/api/settings", async () => {
+        const settings = await loadUserSettings();
+        return {
+            providers: staticConfig.providers.map(({ id, name, apiKeyOptional }) => ({ id, name, apiKeyOptional: Boolean(apiKeyOptional) })),
+            settings: {
+                provider: settings.provider || "",
+                model: settings.model || "",
+                // Never send the full key — only a masked preview so the user can tell which key is saved.
+                apiKeySet: Boolean(settings.apiKey),
+                apiKeyPreview: maskApiKey(settings.apiKey),
+                sourceLanguage: settings.sourceLanguage || staticConfig.appDefaults.sourceLanguage || "",
+                targetLanguage: settings.targetLanguage || staticConfig.appDefaults.targetLanguage || "",
+                maxImageBytes: getPositiveInteger(settings.maxImageBytes, staticConfig.appDefaults.maxImageBytes),
+                port: getPositiveInteger(settings.port, staticConfig.appDefaults.port) || 8787,
+            },
+        };
+    })
+    .post(
+        "/api/settings",
+        async ({ request, body, set }) => {
+            if (!isSameOriginRequest(request)) {
+                set.status = 403;
+                return { error: "forbidden", message: "Cross-origin settings changes are not allowed." };
+            }
+
+            if (!body || typeof body !== "object") {
+                throw new HttpError(400, "invalid_body", "Request body must be a JSON object.");
+            }
+
+            const updated = applySettingsUpdate(await loadUserSettings(), body, staticConfig);
+            await saveUserSettings(updated);
+            return { ok: true };
+        },
+        { body: t.Any() },
+    )
     .post(
         "/api/translate",
         async ({ body, query }) => {
@@ -92,7 +141,7 @@ const app = new Elysia()
     .listen(port);
 
 console.log("[MangoTL] Server starting...");
-console.log("[MangoTL] Listening on http://localhost:", app.server?.port || port);
+console.log(`[MangoTL] Listening on http://localhost:${app.server?.port || port}`);
 console.log("[MangoTL] Detection Engine:", initialConfig.defaultDetectionEngine);
 console.log("[MangoTL] OCR Engine fallback:", initialConfig.defaultOcrEngine);
 console.log("[MangoTL] OCR Language routing:", initialConfig.ocrRouting?.languages || {});
@@ -102,6 +151,93 @@ console.log(
 );
 console.log("[MangoTL] Default Provider:", initialConfig.defaultProvider);
 console.log("[MangoTL] Default Model:", initialConfig.defaultModel);
+
+// Show only the first 6 characters of the API key, never the rest.
+function maskApiKey(apiKey) {
+    if (!apiKey) {
+        return "";
+    }
+
+    // Prefix (everything up to and including the last dash) never counts toward
+    // the revealed characters — only the actual key part does, and only 4 of it.
+    const dashIndex = apiKey.lastIndexOf("-");
+    const prefix = dashIndex >= 0 ? apiKey.slice(0, dashIndex + 1) : "";
+    const keyPart = dashIndex >= 0 ? apiKey.slice(dashIndex + 1) : apiKey;
+
+    if (keyPart.length <= 4) {
+        return `${prefix}${"•".repeat(keyPart.length)}`;
+    }
+
+    // Mask length mirrors the real remaining key length.
+    return `${prefix}${keyPart.slice(0, 4)}${"•".repeat(keyPart.length - 4)}`;
+}
+
+// Only same-origin requests (the settings page itself) may change settings,
+// so a random website cannot read/overwrite the API key via CORS.
+function isSameOriginRequest(request) {
+    const origin = request.headers.get("origin");
+
+    if (!origin) {
+        return true;
+    }
+
+    try {
+        return new URL(origin).host === request.headers.get("host");
+    } catch {
+        return false;
+    }
+}
+
+function applySettingsUpdate(current, update, staticConfig) {
+    const updated = { ...current };
+
+    if ("provider" in update) {
+        const provider = String(update.provider ?? "");
+
+        if (!staticConfig.providers.some((entry) => entry.id === provider)) {
+            throw new HttpError(
+                400,
+                "invalid_provider",
+                `Unknown provider: "${provider}". Available: ${staticConfig.providers.map((entry) => entry.id).join(", ")}.`,
+            );
+        }
+
+        updated.provider = provider;
+    }
+
+    if ("model" in update) {
+        const model = String(update.model ?? "").trim();
+
+        if (!model) {
+            throw new HttpError(400, "invalid_model", "Model must not be empty.");
+        }
+
+        updated.model = model;
+    }
+
+    // An empty/omitted apiKey keeps the current key, so the page never needs to round-trip it.
+    if ("apiKey" in update && typeof update.apiKey === "string") {
+        const apiKey = update.apiKey.trim();
+
+        if (apiKey) {
+            updated.apiKey = apiKey;
+        }
+    }
+
+    for (const key of ["maxImageBytes", "port"]) {
+        if (key in update) {
+            const value = getPositiveInteger(update[key]);
+
+            if (!value) {
+                throw new HttpError(400, `invalid_${key}`, `${key} must be a positive integer.`);
+            }
+
+            updated[key] = value;
+        }
+    }
+
+    return updated;
+}
 
 function errorResponse(error, set) {
     if (error instanceof HttpError) {
