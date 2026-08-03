@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +8,20 @@ const optionalConfigTopLevelKeysByKind = {
     "ocr-engine": ["capabilities"],
 };
 
-export async function loadServerConfig() {
+const defaultSettings = {
+    provider: "",
+    model: "",
+    apiKey: "",
+    sourceLanguage: "ja",
+    targetLanguage: "ko",
+    maxImageBytes: 20971520,
+};
+
+// Static config (providers, OCR engines, websites, defaults) is loaded once at boot.
+// User settings (secrets/settings.json) are re-read per request so the settings
+// page can save changes without a server restart. Port is the exception: rebinding
+// it requires a restart, so it is applied only at boot.
+export async function loadStaticServerConfig() {
     const app = (await loadConfigFile(path.join(serverRoot, "config/app.json"))) || {};
     const providers = await loadConfigDirectory(path.join(serverRoot, "config/providers"));
     const ocrEngines = await loadConfigDirectory(path.join(serverRoot, "config/ocr-engines"));
@@ -17,20 +30,47 @@ export async function loadServerConfig() {
     const ocrRouting = await loadConfigFile(path.join(serverRoot, "config/ocr-routing.json"));
 
     return {
-        port: app.port || 8787,
-        maxImageBytes: getPositiveInteger(process.env.MANGOTL_MAX_IMAGE_BYTES, app.security?.maxImageBytes),
-        defaultSourceLanguage: process.env.MANGOTL_SOURCE_LANGUAGE || app.languages?.source || null,
-        defaultTargetLanguage: process.env.MANGOTL_TARGET_LANGUAGE || app.languages?.target || null,
+        appDefaults: {
+            port: app.port || 8787,
+            maxImageBytes: app.security?.maxImageBytes || null,
+            sourceLanguage: app.languages?.source || null,
+            targetLanguage: app.languages?.target || null,
+        },
         languageSettings: app.languages || {},
         providers,
         ocrEngines,
         detectionEngines,
         websites,
         ocrRouting,
-        defaultProvider: process.env.MANGOTL_AI_PROVIDER || null,
-        defaultModel: process.env.MANGOTL_AI_MODEL || null,
         defaultOcrEngine: ocrRouting?.ocrEngine || null,
         defaultDetectionEngine: ocrRouting?.detectionEngine || detectionEngines[0]?.id || null,
+    };
+}
+
+// Read the settings store (written by the settings page). Creates it with defaults
+// on first boot so the page always has a store to read/write.
+export async function loadUserSettings() {
+    const settingsPath = path.join(serverRoot, "secrets/settings.json");
+    const settings = await loadJsonFile(settingsPath);
+
+    if (settings) {
+        return settings;
+    }
+
+    await writeFile(settingsPath, `${JSON.stringify(defaultSettings, null, 4)}\n`);
+    return defaultSettings;
+}
+
+export function applyUserSettings(staticConfig, settings) {
+    return {
+        ...staticConfig,
+        port: getPositiveInteger(settings.port, staticConfig.appDefaults.port) || 8787,
+        maxImageBytes: getPositiveInteger(settings.maxImageBytes, staticConfig.appDefaults.maxImageBytes),
+        defaultSourceLanguage: settings.sourceLanguage || staticConfig.appDefaults.sourceLanguage,
+        defaultTargetLanguage: settings.targetLanguage || staticConfig.appDefaults.targetLanguage,
+        defaultProvider: settings.provider || null,
+        defaultModel: settings.model || null,
+        apiKey: settings.apiKey || null,
     };
 }
 

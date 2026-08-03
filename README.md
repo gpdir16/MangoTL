@@ -2,7 +2,7 @@ English | [Korean](README_ko.md)
 
 # MangoTL
 
-MangoTL is an AI-powered manga, manhwa, webtoon, and comic image translator. It ships as a browser extension plus a self-hostable local server. The extension reads the selected image and uploads the image bytes to the server, then the server runs OCR, translates detected text with an OpenAI-compatible provider, and returns a rendered translated image.
+MangoTL is an AI-powered translation browser extension and self-hostable server for comics, manga, and webtoons.
 
 [View on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/)
 
@@ -74,45 +74,15 @@ You can check the full list below.
     bun install
     ```
 
-2. Create your environment file.
-
-    ```sh
-    cp .env.example .env
-    ```
-
-3. Add your provider API key, select your provider, and optionally set a model in `.env`. Below is an example using OpenRouter.
-
-    ```env
-    OPENROUTER_API_KEY=your_api_key_here
-    MANGOTL_AI_PROVIDER=openrouter
-    MANGOTL_AI_MODEL=google/gemma-4-26b-a4b-it
-    ```
-
-4. Start the server.
+2. Start the server.
 
     ```sh
     bun run start
     ```
 
-5. Check that the server is ready.
+3. Specify the provider, API key, and model at localhost:8787/config. Settings are saved in `server/secrets/settings.json`.
 
-    ```sh
-    curl http://localhost:8787/health
-    ```
-
-### Optional Settings
-
-```env
-# Port (default: 8787)
-# PORT=8787
-
-# Default source/target languages (default: ja → ko)
-# MANGOTL_SOURCE_LANGUAGE=ja
-# MANGOTL_TARGET_LANGUAGE=ko
-
-# Maximum image size in bytes (default: 20971520)
-# MANGOTL_MAX_IMAGE_BYTES=20971520
-```
+4. You can now use MangoTL through the browser add-on.
 
 ## Operation Flow
 

@@ -3,16 +3,16 @@ import { HttpError } from "../utils/http-error.js";
 
 const MAX_TRANSLATION_ATTEMPTS = 2;
 
-export async function translateWithOpenAICompatible({ provider, model, sourceLanguage, targetLanguage, blocks, signal }) {
+export async function translateWithOpenAICompatible({ provider, model, sourceLanguage, targetLanguage, blocks, apiKey = null, signal }) {
     if (blocks.length === 0) {
         return [];
     }
 
-    const apiKey = process.env[provider.apiKeyEnv] || (provider.apiKeyOptional ? provider.defaultApiKey || "" : null);
+    const resolvedApiKey = apiKey || (provider.apiKeyOptional ? provider.defaultApiKey || "" : null);
     const baseUrl = provider.baseUrl;
 
-    if (!apiKey && !provider.apiKeyOptional) {
-        throw new HttpError(503, "ai_api_key_missing", `Missing API key env: ${provider.apiKeyEnv}`);
+    if (!resolvedApiKey && !provider.apiKeyOptional) {
+        throw new HttpError(503, "ai_api_key_missing", `Missing "apiKey" for provider "${provider.id}" in server/secrets/settings.json.`);
     }
 
     if (!baseUrl) {
@@ -31,7 +31,7 @@ export async function translateWithOpenAICompatible({ provider, model, sourceLan
     });
     const { translations } = await requestTranslationsWithRetry({
         endpointUrl,
-        apiKey,
+        apiKey: resolvedApiKey,
         provider,
         model,
         messages,

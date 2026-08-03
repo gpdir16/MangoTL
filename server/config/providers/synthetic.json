@@ -5,7 +5,6 @@
     "type": "openai-compatible",
     "settings": {
         "baseUrl": "https://api.synthetic.new/openai/v1",
-        "apiKeyEnv": "SYNTHETIC_API_KEY",
         "responseFormat": {
             "type": "json_object"
         }

@@ -2,13 +2,14 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import prettier from "prettier";
-import { loadServerConfig } from "../src/config/load-server-config.js";
+import { loadStaticServerConfig, applyUserSettings, loadUserSettings } from "../src/config/load-server-config.js";
 import { buildPublicConfig } from "../src/config/public-config.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const publicConfigPath = path.join(root, "extension/config/public-config.json");
 
-const config = await loadServerConfig();
+const staticConfig = await loadStaticServerConfig();
+const config = applyUserSettings(staticConfig, await loadUserSettings());
 const publicConfig = buildPublicConfig(config);
 const prettierOptions = (await prettier.resolveConfig(publicConfigPath)) || {};
 const formatted = await prettier.format(JSON.stringify(publicConfig), {

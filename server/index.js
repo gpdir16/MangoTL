@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { loadServerConfig } from "./src/config/load-server-config.js";
+import { loadStaticServerConfig, loadUserSettings, applyUserSettings } from "./src/config/load-server-config.js";
 import { buildPublicConfig } from "./src/config/public-config.js";
 import { normalizeTranslateRequest } from "./src/http/normalize-translate-request.js";
 import { translateImage } from "./src/pipeline/translate-image.js";
@@ -7,27 +7,20 @@ import { HttpError } from "./src/utils/http-error.js";
 import { clearImageResultCache } from "./src/utils/image-result-cache.js";
 
 await clearImageResultCache();
-const config = await loadServerConfig();
+const staticConfig = await loadStaticServerConfig();
+const initialConfig = applyUserSettings(staticConfig, await loadUserSettings());
 
-if (!config.defaultProvider) {
-    console.error("[MangoTL] Fatal: MANGOTL_AI_PROVIDER env var is not set. Set it to a provider id (e.g. crofai, openrouter).");
-    process.exit(1);
+if (!initialConfig.defaultProvider || !initialConfig.defaultModel) {
+    console.warn("[MangoTL] Warning: no AI provider/model configured yet. Server stays up — set provider/model in server/secrets/settings.json.");
 }
 
-if (!config.providers.some((p) => p.id === config.defaultProvider)) {
-    console.error(
-        `[MangoTL] Fatal: MANGOTL_AI_PROVIDER "${config.defaultProvider}" does not match any known provider id. ` +
-            `Available: ${config.providers.map((p) => p.id).join(", ") || "(none)"}`,
-    );
-    process.exit(1);
-}
+const port = initialConfig.port;
 
-if (!config.defaultModel) {
-    console.error("[MangoTL] Fatal: MANGOTL_AI_MODEL env var is not set. Set it to a provider model name (e.g. openai/gpt-5.4-nano).");
-    process.exit(1);
+// Settings saved to server/secrets/settings.json take effect on the next request
+// (no restart needed). Port is the exception: rebinding requires a restart.
+async function getRequestConfig() {
+    return applyUserSettings(staticConfig, await loadUserSettings());
 }
-
-const port = Number(process.env.PORT || config.port || 8787);
 
 const app = new Elysia()
     .onError(({ error, set }) => errorResponse(error, set))
@@ -40,21 +33,24 @@ const app = new Elysia()
         set.status = 204;
         return null;
     })
-    .get("/health", () => {
+    .get("/health", async () => {
+        const config = await getRequestConfig();
         return {
             ok: true,
             name: "MangoTL server",
             version: "0.1.0",
+            configured: Boolean(config.defaultProvider && config.defaultModel),
             detectionEngine: config.defaultDetectionEngine,
             ocrEngine: config.defaultOcrEngine,
             ocrRouting: config.ocrRouting?.languages || {},
             defaultProvider: config.defaultProvider,
         };
     })
-    .get("/api/config", () => buildPublicConfig(config))
+    .get("/api/config", async () => buildPublicConfig(await getRequestConfig()))
     .post(
         "/api/translate",
         async ({ body, query }) => {
+            const config = await getRequestConfig();
             const request = await normalizeTranslateRequest(body, query, config);
             const startTime = Date.now();
 
@@ -97,15 +93,15 @@ const app = new Elysia()
 
 console.log("[MangoTL] Server starting...");
 console.log("[MangoTL] Listening on http://localhost:", app.server?.port || port);
-console.log("[MangoTL] Detection Engine:", config.defaultDetectionEngine);
-console.log("[MangoTL] OCR Engine fallback:", config.defaultOcrEngine);
-console.log("[MangoTL] OCR Language routing:", config.ocrRouting?.languages || {});
+console.log("[MangoTL] Detection Engine:", initialConfig.defaultDetectionEngine);
+console.log("[MangoTL] OCR Engine fallback:", initialConfig.defaultOcrEngine);
+console.log("[MangoTL] OCR Language routing:", initialConfig.ocrRouting?.languages || {});
 console.log(
     "[MangoTL] Website configs:",
-    config.websites.map((website) => website.id),
+    initialConfig.websites.map((website) => website.id),
 );
-console.log("[MangoTL] Default Provider:", config.defaultProvider);
-console.log("[MangoTL] Default Model:", config.defaultModel);
+console.log("[MangoTL] Default Provider:", initialConfig.defaultProvider);
+console.log("[MangoTL] Default Model:", initialConfig.defaultModel);
 
 function errorResponse(error, set) {
     if (error instanceof HttpError) {

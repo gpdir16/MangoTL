@@ -5,6 +5,7 @@ dist/
 server/out/
 server/.ocr-cache/
 server/.image-cache/
+server/secrets/
 _start.md
 test-images/*.jpeg
 test-images/tmp/

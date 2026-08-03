@@ -4,8 +4,6 @@
 
 MangoTL은 만화, 망가, 웹툰을 위한 AI 기반 번역 브라우저 확장프로그램이자 셀프 호스팅 가능한 서버입니다.
 
-복잡한 작업 없이 Immersive Translate의 만화 번역 기능처럼 상업용 번역기 수준의 만화 번역을 수행하는것을 목표로 합니다.
-
 [Firefox Add-ons에서 보기](https://addons.mozilla.org/ko-KR/firefox/addon/mangotl/)
 
 ## 애드온 스크린샷
@@ -76,45 +74,15 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
     bun install
     ```
 
-2. 환경 파일을 만듭니다.
-
-    ```sh
-    cp .env.example .env
-    ```
-
-3. `.env`에 제공자 API 키, 제공자, 그리고 선택적으로 모델을 지정합니다. 아래는 OpenRouter를 사용하는 예시입니다.
-
-    ```env
-    OPENROUTER_API_KEY=your_api_key_here
-    MANGOTL_AI_PROVIDER=openrouter
-    MANGOTL_AI_MODEL=google/gemma-4-26b-a4b-it
-    ```
-
-4. 서버를 시작합니다.
+2. 서버를 시작합니다.
 
     ```sh
     bun start
     ```
 
-5. 서버가 준비되었는지 확인합니다.
+3. localhost:8787/config 에서 제공자, API 키, 모델을 지정합니다. 설정은 `server/secrets/settings.json`에 저장됩니다.
 
-    ```sh
-    curl http://localhost:8787/health
-    ```
-
-### 선택적 설정
-
-```env
-# 포트 (기본값: 8787)
-# PORT=8787
-
-# 기본 출발/도착 언어 (기본값: ja → ko)
-# MANGOTL_SOURCE_LANGUAGE=ja
-# MANGOTL_TARGET_LANGUAGE=ko
-
-# 최대 이미지 크기 (바이트, 기본값: 20971520)
-# MANGOTL_MAX_IMAGE_BYTES=20971520
-```
+4. 이제 브라우저 애드온을 통해 MangoTL을 사용할 수 있습니다.
 
 ## 작동 순서
 

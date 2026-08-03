@@ -85,6 +85,7 @@ export async function translateImage(request, config, options = {}) {
             : await translateWithOpenAICompatible({
                   provider,
                   model: config.defaultModel,
+                  apiKey: config.apiKey,
                   sourceLanguage: request.sourceLanguage,
                   targetLanguage: request.targetLanguage,
                   blocks: sourceBlocks,
