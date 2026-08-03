@@ -1,11 +1,8 @@
 node_modules/
 dist/
-.env
 .DS_Store
+test-images/
 server/out/
 server/.ocr-cache/
 server/.image-cache/
 server/secrets/
-_start.md
-test-images/*.jpeg
-test-images/tmp/
