@@ -54,7 +54,12 @@ You can check the full list below.
 
 - [CrofAI](https://crof.ai)
 - [OpenRouter](https://openrouter.ai)
-- OpenAI-compatible endpoints
+- [OpenAI](https://openai.com)
+- [Synthetic](https://synthetic.new)
+- [Ollama](https://ollama.com) (local)
+- [Ollama Cloud](https://ollama.com)
+- [ZenMux](https://zenmux.ai)
+- [Upstage](https://upstage.ai)
 
 ### Detection/OCR Engines
 
@@ -75,11 +80,12 @@ You can check the full list below.
     cp .env.example .env
     ```
 
-3. Add your provider API key and select your provider in `.env`. Below is an example using OpenRouter.
+3. Add your provider API key, select your provider, and optionally set a model in `.env`. Below is an example using OpenRouter.
 
     ```env
     OPENROUTER_API_KEY=your_api_key_here
     MANGOTL_AI_PROVIDER=openrouter
+    MANGOTL_AI_MODEL=google/gemma-4-26b-a4b-it
     ```
 
 4. Start the server.
@@ -93,6 +99,20 @@ You can check the full list below.
     ```sh
     curl http://localhost:8787/health
     ```
+
+### Optional Settings
+
+```env
+# Port (default: 8787)
+# PORT=8787
+
+# Default source/target languages (default: ja → ko)
+# MANGOTL_SOURCE_LANGUAGE=ja
+# MANGOTL_TARGET_LANGUAGE=ko
+
+# Maximum image size in bytes (default: 20971520)
+# MANGOTL_MAX_IMAGE_BYTES=20971520
+```
 
 ## Operation Flow
 
