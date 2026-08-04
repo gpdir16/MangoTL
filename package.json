@@ -1,6 +1,6 @@
 {
     "name": "mangotl",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "Translate manga, manhwa, webtoon, and comic images directly in your browser.",
     "license": "AGPL-3.0-or-later",
     "type": "module",
