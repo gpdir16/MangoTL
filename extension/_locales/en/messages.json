@@ -12,7 +12,7 @@
         "message": "Open Settings"
     },
     "optionsTitle": {
-        "message": "MangoTL Settings"
+        "message": "MangoTL Add-on Settings"
     },
     "optionsServerUrlLabel": {
         "message": "Server URL"
@@ -161,5 +161,97 @@
     },
     "optionsCanvasQualityLabel": {
         "message": "Image Capture JPEG Quality"
+    },
+    "optionsHelp": {
+        "message": "Open README Help"
+    },
+    "optionsTabServer": {
+        "message": "Server"
+    },
+    "optionsTabLanguage": {
+        "message": "Language"
+    },
+    "optionsTabImage": {
+        "message": "Image"
+    },
+    "optionsDescServer": {
+        "message": "Configure the server used for translation."
+    },
+    "optionsDescLanguage": {
+        "message": "Configure the target language for translations."
+    },
+    "optionsDescImage": {
+        "message": "Configure how images are fetched and captured."
+    },
+    "optionsHintServerUrl": {
+        "message": "Changing the server URL refreshes the target language list."
+    },
+    "optionsSaveSuccess": {
+        "message": "Successfully applied settings."
+    },
+    "optionsSaveError": {
+        "message": "Failed to save settings: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "optionsServerConnectionStatus": {
+        "message": "Connection status"
+    },
+    "optionsServerStatusChecking": {
+        "message": "Checking..."
+    },
+    "optionsServerStatusConnected": {
+        "message": "Connected"
+    },
+    "optionsServerStatusDisconnected": {
+        "message": "Not connected"
+    },
+    "optionsServerName": {
+        "message": "Server"
+    },
+    "optionsServerVersion": {
+        "message": "Version"
+    },
+    "optionsServerProvider": {
+        "message": "Provider"
+    },
+    "optionsServerInferenceReady": {
+        "message": "AI inference"
+    },
+    "optionsServerInferenceReadyYes": {
+        "message": "Configured"
+    },
+    "optionsServerInferenceReadyNo": {
+        "message": "Not configured"
+    },
+    "optionsServerDetectionEngine": {
+        "message": "Detection engine (fallback)"
+    },
+    "optionsServerOcrEngine": {
+        "message": "OCR engine (fallback)"
+    },
+    "optionsServerRouting": {
+        "message": "Per-language routing"
+    },
+    "optionsServerRoutingLanguage": {
+        "message": "Language"
+    },
+    "optionsServerRoutingDetection": {
+        "message": "Detection engine"
+    },
+    "optionsServerRoutingOcr": {
+        "message": "OCR engine"
+    },
+    "optionsServerRoutingEmpty": {
+        "message": "No routing"
+    },
+    "optionsServerInstallGuideText": {
+        "message": "Cannot connect to the server. If you haven't installed the server yet, see the setup guide."
+    },
+    "optionsServerInstallGuideLink": {
+        "message": "Open server setup guide"
     }
 }

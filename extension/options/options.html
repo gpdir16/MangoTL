@@ -4,71 +4,163 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="stylesheet" href="options.css" />
-        <title data-i18n="optionsTitle">MangoTL Settings</title>
+        <title data-i18n="optionsTitle">MangoTL Add-on Settings</title>
     </head>
     <body>
-        <main class="options-shell">
-            <header class="options-header">
-                <h1 data-i18n="optionsTitle">MangoTL Settings</h1>
-            </header>
+        <header class="topbar">
+            <h1 data-i18n="optionsTitle">MangoTL Add-on Settings</h1>
+        </header>
 
-            <form id="options-form">
-                <label>
-                    <span data-i18n="optionsServerUrlLabel">Server URL</span>
-                    <input
-                        id="server-url"
-                        name="serverUrl"
-                        type="url"
-                        required
-                        placeholder="http://localhost:8787"
-                        data-i18n-attr="placeholder:optionsServerUrlPlaceholder"
-                    />
-                </label>
+        <div class="layout">
+            <nav class="sidebar" aria-label="Settings tabs">
+                <button type="button" class="tab active" data-tab="server" data-i18n="optionsTabServer">Server</button>
+                <button type="button" class="tab" data-tab="language" data-i18n="optionsTabLanguage">Language</button>
+                <button type="button" class="tab" data-tab="image" data-i18n="optionsTabImage">Image</button>
+                <button type="button" id="help-btn" class="tab" data-i18n="optionsHelp">Open README Help</button>
+            </nav>
 
-                <section class="language-fields" aria-label="Language settings" data-i18n-attr="aria-label:optionsLanguageSettingsAria">
-                    <label>
-                        <span data-i18n="optionsTargetLanguageLabel">Target Language</span>
-                        <select id="target-language" disabled></select>
-                    </label>
+            <main class="content">
+                <section id="panel-server" class="panel active">
+                    <h2 data-i18n="optionsTabServer">Server</h2>
+                    <p class="desc" data-i18n="optionsDescServer">Configure the server used for translation.</p>
+
+                    <div class="field">
+                        <label data-i18n="optionsServerConnectionStatus">Connection status</label>
+                        <div class="status-row">
+                            <span id="status-dot" class="status-dot checking"></span>
+                            <span id="status-text" class="status-text" data-i18n="optionsServerStatusChecking">Checking...</span>
+                        </div>
+                        <div id="server-unavailable-notice" class="server-notice" hidden>
+                            <p class="notice-text" data-i18n="optionsServerInstallGuideText">
+                                Cannot connect to the server. If you haven't installed the server yet, see the setup guide.
+                            </p>
+                            <a
+                                id="install-guide-link"
+                                class="notice-link"
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                data-i18n="optionsServerInstallGuideLink"
+                                >Open server setup guide</a
+                            >
+                        </div>
+                        <dl id="server-info" class="server-info" hidden>
+                            <div>
+                                <dt data-i18n="optionsServerName">Server</dt>
+                                <dd id="info-name"></dd>
+                            </div>
+                            <div>
+                                <dt data-i18n="optionsServerVersion">Version</dt>
+                                <dd id="info-version"></dd>
+                            </div>
+                            <div>
+                                <dt data-i18n="optionsServerProvider">Provider</dt>
+                                <dd id="info-provider"></dd>
+                            </div>
+                            <div>
+                                <dt data-i18n="optionsServerInferenceReady">AI inference</dt>
+                                <dd id="info-configured"></dd>
+                            </div>
+                            <div>
+                                <dt data-i18n="optionsServerDetectionEngine">Detection engine (fallback)</dt>
+                                <dd id="info-detection"></dd>
+                            </div>
+                            <div>
+                                <dt data-i18n="optionsServerOcrEngine">OCR engine (fallback)</dt>
+                                <dd id="info-ocr"></dd>
+                            </div>
+                        </dl>
+                        <div id="server-routing" class="server-routing" hidden>
+                            <span class="routing-title" data-i18n="optionsServerRouting">Per-language routing</span>
+                            <table class="routing-table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="optionsServerRoutingLanguage">Language</th>
+                                        <th data-i18n="optionsServerRoutingDetection">Detection engine</th>
+                                        <th data-i18n="optionsServerRoutingOcr">OCR engine</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="routing-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>
+                            <span data-i18n="optionsServerUrlLabel">Server URL</span>
+                            <span class="hint" data-i18n="optionsHintServerUrl">Changing the server URL refreshes the target language list.</span>
+                        </label>
+                        <div class="field-row">
+                            <input
+                                id="server-url"
+                                type="url"
+                                required
+                                placeholder="http://localhost:8787"
+                                data-i18n-attr="placeholder:optionsServerUrlPlaceholder"
+                            />
+                            <button type="button" class="field-save" data-save="serverUrl" hidden data-i18n="optionsSaveButton">Save</button>
+                        </div>
+                    </div>
                 </section>
 
-                <details class="advanced-settings">
-                    <summary data-i18n="optionsAdvancedSettings">Advanced Settings</summary>
+                <section id="panel-language" class="panel">
+                    <h2 data-i18n="optionsTabLanguage">Language</h2>
+                    <p class="desc" data-i18n="optionsDescLanguage">Configure the target language for translations.</p>
 
-                    <section class="image-settings" aria-label="Image settings" data-i18n-attr="aria-label:optionsImageSettingsAria">
-                        <label>
-                            <span data-i18n="optionsImageFetchStrategyLabel">Image Fetch Strategy</span>
+                    <div class="field">
+                        <label data-i18n="optionsTargetLanguageLabel">Target Language</label>
+                        <div class="field-row">
+                            <select id="target-language" disabled></select>
+                            <button type="button" class="field-save" data-save="targetLanguage" hidden data-i18n="optionsSaveButton">Save</button>
+                        </div>
+                        <p id="language-status" class="hint" data-i18n="optionsServerStatusLoading">Loading server config...</p>
+                    </div>
+                </section>
+
+                <section id="panel-image" class="panel">
+                    <h2 data-i18n="optionsTabImage">Image</h2>
+                    <p class="desc" data-i18n="optionsDescImage">Configure how images are fetched and captured.</p>
+
+                    <div class="field">
+                        <label data-i18n="optionsImageFetchStrategyLabel">Image Fetch Strategy</label>
+                        <div class="field-row">
                             <select id="image-fetch-strategy">
                                 <option value="canvas-first" data-i18n="optionsImageFetchStrategyCanvasFirst">
-                                    Canvas first, fallback to network (Recommended)
+                                    Image capture first, fallback to network (Recommended)
                                 </option>
-                                <option value="canvas-only" data-i18n="optionsImageFetchStrategyCanvasOnly">Canvas capture only (no fallback)</option>
-                                <option value="fetch-only" data-i18n="optionsImageFetchStrategyFetchOnly">Network fetch only (no canvas)</option>
+                                <option value="canvas-only" data-i18n="optionsImageFetchStrategyCanvasOnly">Image capture only</option>
+                                <option value="fetch-only" data-i18n="optionsImageFetchStrategyFetchOnly">Network fetch only</option>
                             </select>
-                        </label>
-                        <label>
-                            <span data-i18n="optionsImageFetchCredentialsLabel">Fetch Credentials (cookies)</span>
+                            <button type="button" class="field-save" data-save="imageFetchStrategy" hidden data-i18n="optionsSaveButton">Save</button>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label data-i18n="optionsImageFetchCredentialsLabel">Fetch Credentials</label>
+                        <div class="field-row">
                             <select id="image-fetch-credentials">
-                                <option value="omit" data-i18n="optionsImageFetchCredentialsOmit">Omit (no cookies) (Recommended)</option>
-                                <option value="same-origin" data-i18n="optionsImageFetchCredentialsSameOrigin">Same-origin only</option>
-                                <option value="include" data-i18n="optionsImageFetchCredentialsInclude">Include (cross-origin cookies)</option>
+                                <option value="omit" data-i18n="optionsImageFetchCredentialsOmit">No cookie (Recommended)</option>
+                                <option value="same-origin" data-i18n="optionsImageFetchCredentialsSameOrigin">Same-origin cookies</option>
+                                <option value="include" data-i18n="optionsImageFetchCredentialsInclude">Same-origin and cross-origin cookies</option>
                             </select>
-                        </label>
-                        <label>
-                            <span data-i18n="optionsCanvasQualityLabel">Canvas JPEG Quality</span>
-                            <input id="canvas-quality" type="number" min="0.1" max="1" step="0.05" value="0.95" />
-                        </label>
-                    </section>
-                </details>
+                            <button type="button" class="field-save" data-save="imageFetchCredentials" hidden data-i18n="optionsSaveButton">
+                                Save
+                            </button>
+                        </div>
+                    </div>
 
-                <p id="server-status" role="status" data-i18n="optionsServerStatusLoading">Loading server config...</p>
+                    <div class="field">
+                        <label data-i18n="optionsCanvasQualityLabel">Image Capture JPEG Quality</label>
+                        <div class="field-row">
+                            <input id="canvas-quality" type="number" min="0.1" max="1" step="0.05" />
+                            <button type="button" class="field-save" data-save="canvasQuality" hidden data-i18n="optionsSaveButton">Save</button>
+                        </div>
+                    </div>
+                </section>
 
-                <div class="actions">
-                    <button type="submit" data-i18n="optionsSaveButton">Save</button>
-                    <span id="save-status" role="status"></span>
-                </div>
-            </form>
-        </main>
+                <p id="message" role="status"></p>
+            </main>
+        </div>
         <script src="../shared/i18n.js"></script>
         <script src="options.js"></script>
     </body>

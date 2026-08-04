@@ -12,7 +12,7 @@
         "message": "설정 열기"
     },
     "optionsTitle": {
-        "message": "MangoTL 설정"
+        "message": "MangoTL 애드온 설정"
     },
     "optionsServerUrlLabel": {
         "message": "서버 URL"
@@ -161,5 +161,97 @@
     },
     "optionsCanvasQualityLabel": {
         "message": "이미지 캡처 JPEG 품질"
+    },
+    "optionsHelp": {
+        "message": "README 도움말 열기"
+    },
+    "optionsTabServer": {
+        "message": "서버"
+    },
+    "optionsTabLanguage": {
+        "message": "언어"
+    },
+    "optionsTabImage": {
+        "message": "이미지"
+    },
+    "optionsDescServer": {
+        "message": "번역에 사용할 서버를 설정합니다."
+    },
+    "optionsDescLanguage": {
+        "message": "번역 결과의 도착 언어를 설정합니다."
+    },
+    "optionsDescImage": {
+        "message": "이미지를 가져오고 캡처하는 방식을 설정합니다."
+    },
+    "optionsHintServerUrl": {
+        "message": "서버 URL을 바꾸면 도착 언어 목록을 새로고침합니다."
+    },
+    "optionsSaveSuccess": {
+        "message": "성공적으로 설정을 적용했습니다."
+    },
+    "optionsSaveError": {
+        "message": "설정 저장에 실패했습니다: $ERROR$",
+        "placeholders": {
+            "error": {
+                "content": "$1"
+            }
+        }
+    },
+    "optionsServerConnectionStatus": {
+        "message": "연결 상태"
+    },
+    "optionsServerStatusChecking": {
+        "message": "확인 중..."
+    },
+    "optionsServerStatusConnected": {
+        "message": "연결됨"
+    },
+    "optionsServerStatusDisconnected": {
+        "message": "연결되지 않음"
+    },
+    "optionsServerName": {
+        "message": "서버"
+    },
+    "optionsServerVersion": {
+        "message": "버전"
+    },
+    "optionsServerProvider": {
+        "message": "제공자"
+    },
+    "optionsServerInferenceReady": {
+        "message": "AI 추론"
+    },
+    "optionsServerInferenceReadyYes": {
+        "message": "설정됨"
+    },
+    "optionsServerInferenceReadyNo": {
+        "message": "미설정"
+    },
+    "optionsServerDetectionEngine": {
+        "message": "감지 엔진(폴백)"
+    },
+    "optionsServerOcrEngine": {
+        "message": "OCR 엔진(폴백)"
+    },
+    "optionsServerRouting": {
+        "message": "언어별 라우팅"
+    },
+    "optionsServerRoutingLanguage": {
+        "message": "언어"
+    },
+    "optionsServerRoutingDetection": {
+        "message": "감지 엔진"
+    },
+    "optionsServerRoutingOcr": {
+        "message": "OCR 엔진"
+    },
+    "optionsServerRoutingEmpty": {
+        "message": "라우팅 없음"
+    },
+    "optionsServerInstallGuideText": {
+        "message": "서버에 연결할 수 없습니다. 서버를 아직 설치하지 않았다면 설치 가이드를 참고하세요."
+    },
+    "optionsServerInstallGuideLink": {
+        "message": "서버 설치 가이드 열기"
     }
 }
