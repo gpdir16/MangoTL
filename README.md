@@ -4,22 +4,20 @@ English | [Korean](README_ko.md)
 
 MangoTL is an AI-powered translation browser extension and self-hostable server for comics, manga, and webtoons.
 
-[View on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/)
+## Add-on Screenshots
 
-## Add-on Screenshot
-
-<img width="284" height="184" alt="376708" src="https://github.com/user-attachments/assets/299dadf8-b0b1-484f-a5df-7b5aa04eeb11" />
-<img width="319" height="244" alt="376709" src="https://github.com/user-attachments/assets/441f589c-a228-40c3-8729-1130fe960d85" />
-<img width="533" height="282" alt="376710" src="https://github.com/user-attachments/assets/e32dba97-171f-4024-947c-5080d0328708" />
+<img width="190" alt="376711" src="https://github.com/user-attachments/assets/74f7cc2c-4c11-4c66-ad5a-bf5200758168" />
+<img width="250" alt="376712" src="https://github.com/user-attachments/assets/722e52c5-ef4f-4b21-94aa-1aca45256e85" />
+<img width="460" alt="376713" src="https://github.com/user-attachments/assets/083f12ad-3731-4370-8ba3-dcb41a3c0fdf" />
 
 ### Image sample
 
 - Lang: English to Korean
 - Provider: OpenRouter
-- Model: google/gemma-4-26b-a4b-it model.
+- Model: google/gemma-4-26b-a4b-it
 
-<img width="230" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
-<img width="230" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
+<img width="200" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
+<img width="200" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
 
 ## Supported Items
 
@@ -29,19 +27,10 @@ You can check the full list below.
 
 ### Websites
 
-- Pixiv
-- X
+- Pixiv.net
+- X.com
 
-### Source Languages (comic language)
-
-- Japanese
-- Korean
-- English
-- Chinese
-- German
-- Swedish
-
-### Target Languages (your language)
+### Source and target languages
 
 - Japanese
 - Korean
@@ -66,42 +55,61 @@ You can check the full list below.
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — detection, OCR
 - [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (Japanese default) — OCR
 
-## Server Setup
+## Server Install and Setup
 
-1. Install dependencies.
+### Method 1: Docker (recommended)
 
-    ```sh
-    bun install
-    ```
+Requires [Docker](https://www.docker.com/).
 
-2. Start the server.
+1. The image is published to GHCR on every release and can be run with:
 
-    ```sh
-    bun run start
-    ```
+```sh
+docker pull ghcr.io/gpdir16/mangotl
+docker run -d --name mangotl \
+    -p 8787:8787 \
+    -v mangotl-secrets:/app/server/secrets \
+    -v mangotl-ocr-cache:/app/server/.ocr-cache \
+    --restart unless-stopped \
+    ghcr.io/gpdir16/mangotl
+```
 
-3. Specify the provider, API key, and model at localhost:8787/config. Settings are saved in `server/secrets/settings.json`.
+> Settings are saved to the `mangotl-secrets` volume; downloaded OCR models are cached in the `mangotl-ocr-cache` volume.
 
-4. You can now use MangoTL through the browser add-on.
+2. Open http://localhost:8787/config in your browser and specify the provider, API key, and model in the settings.
+3. You can now use MangoTL through the browser add-on. See the [browser add-on install](#browser-add-on-install-and-setup) section.
 
-## Operation Flow
+### Method 2: Run directly
 
-1. **Browser:** The user clicks the button overlaid on the image. The browser sends the image information to the server.
-2. **Server:** Downloads the image and extracts text using OCR engines such as PaddleOCR and manga-ocr.
-3. **Server:** Sends the extracted text to the configured AI model for translation.
-4. **Server:** Removes the original comic bubble text from the image, inserts the translated text on top, and sends the final image back to the browser.
-5. **Browser:** Overlays the received image onto the original image. The user can now see the translated comic.
+Requires [Bun](https://bun.sh), [NodeJS](https://nodejs.org), [Git](https://git-scm.com/).
 
-## Extension Install
+1. Clone the Git repository and run it:
 
-### Install from Firefox Add-ons (recommended)
+```sh
+git clone https://github.com/gpdir16/MangoTL.git
+cd MangoTL
+bun install
+bun run start
+```
 
-1. [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/) to install.
+> Settings are saved in `server/secrets/settings.json`.
 
-### Build and install manually
+2. Specify the provider, API key, and model at localhost:8787/config.
+3. You can now use MangoTL through the browser add-on. See the [browser add-on install](#browser-add-on-install-and-setup) section.
+
+## Browser Add-on Install and Setup
+
+### Method 1: Install from Firefox Add-ons (recommended)
+
+1. Install from [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/mangotl/).
+2. Click the installed add-on icon and open the settings in the popup to set the server URL (if changed) and target language.
+3. You can now translate images on websites right away. Try it on the supported websites above.
+
+### Method 2: Build and install temporarily
 
 1. Build the release zip: `bun run release:extension`
-2. In Firefox, open `about:debugging` → **This Firefox** → **Load Temporary Add-on** and select any file inside `extension/`.
+2. In Firefox, open `about:debugging` → **This Firefox** → **Load Temporary Add-on** and select a file inside `extension/`.
+3. Click the installed add-on icon and open the settings in the popup to set the server URL (if changed) and target language.
+4. You can now translate images on websites right away. Try it on the supported websites above.
 
 ## Documentation
 

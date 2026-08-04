@@ -4,13 +4,11 @@
 
 MangoTL은 만화, 망가, 웹툰을 위한 AI 기반 번역 브라우저 확장프로그램이자 셀프 호스팅 가능한 서버입니다.
 
-[Firefox Add-ons에서 보기](https://addons.mozilla.org/ko-KR/firefox/addon/mangotl/)
-
 ## 애드온 스크린샷
 
-<img width="230" height="179" alt="376711" src="https://github.com/user-attachments/assets/74f7cc2c-4c11-4c66-ad5a-bf5200758168" />
-<img width="314" height="228" alt="376712" src="https://github.com/user-attachments/assets/722e52c5-ef4f-4b21-94aa-1aca45256e85" />
-<img width="533" height="314" alt="376713" src="https://github.com/user-attachments/assets/083f12ad-3731-4370-8ba3-dcb41a3c0fdf" />
+<img width="190" alt="376711" src="https://github.com/user-attachments/assets/74f7cc2c-4c11-4c66-ad5a-bf5200758168" />
+<img width="250" alt="376712" src="https://github.com/user-attachments/assets/722e52c5-ef4f-4b21-94aa-1aca45256e85" />
+<img width="460" alt="376713" src="https://github.com/user-attachments/assets/083f12ad-3731-4370-8ba3-dcb41a3c0fdf" />
 
 ### 이미지 샘플
 
@@ -18,8 +16,8 @@ MangoTL은 만화, 망가, 웹툰을 위한 AI 기반 번역 브라우저 확장
 - 제공자: 오픈라우터
 - 모델: google/gemma-4-26b-a4b-it
 
-<img width="230" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
-<img width="230" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
+<img width="200" alt="CleanShot 2026-05-31 at 19 14 22" src="https://github.com/user-attachments/assets/2f35ee24-6632-4952-bf59-6de508960d10" />
+<img width="200" alt="CleanShot 2026-05-31 at 19 14 02" src="https://github.com/user-attachments/assets/ee5ce9d7-fac8-4432-9a50-079698304547" />
 
 ## 지원 목록
 
@@ -30,18 +28,9 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 ### 웹사이트
 
 - Pixiv.net
-- X
+- X.com
 
-### 출발 언어 (만화 언어)
-
-- 일본어
-- 한국어
-- 영어
-- 중국어
-- 독일어
-- 스웨덴어
-
-### 도착 언어 (당신의 언어)
+### 출발 및 도착 언어
 
 - 일본어
 - 한국어
@@ -66,42 +55,61 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) - 디텍션, OCR
 - [manga-ocr](https://huggingface.co/mayocream/manga-ocr-onnx) (일본어 기본값) - OCR
 
-## 서버 설정
+## 서버 설치 및 설정
 
-1. 의존성을 설치합니다.
+### 방법 1: Docker (권장)
 
-    ```sh
-    bun install
-    ```
+요구사항: [Docker](https://www.docker.com/)
 
-2. 서버를 시작합니다.
+1. 이미지는 릴리즈마다 GHCR에 배포되며 아래 명령어로 실행할수 있습니다:
 
-    ```sh
-    bun start
-    ```
+```sh
+docker pull ghcr.io/gpdir16/mangotl
+docker run -d --name mangotl \
+    -p 8787:8787 \
+    -v mangotl-secrets:/app/server/secrets \
+    -v mangotl-ocr-cache:/app/server/.ocr-cache \
+    --restart unless-stopped \
+    ghcr.io/gpdir16/mangotl
+```
 
-3. localhost:8787/config 에서 제공자, API 키, 모델을 지정합니다. 설정은 `server/secrets/settings.json`에 저장됩니다.
+> 설정은 `mangotl-secrets` 볼륨에 저장되고, 다운로드한 OCR 모델은 `mangotl-ocr-cache` 볼륨에 캐시됩니다.
 
-4. 이제 브라우저 애드온을 통해 MangoTL을 사용할 수 있습니다.
+2. 브라우저에서 http://localhost:8787/config 를 열고, 설정에서 제공자, API 키, 모델을 지정합니다.
+3. 이제 브라우저 애드온을 통해 MangoTL을 사용할 수 있습니다. 브라우저 애드온 설치는 [브라우저 애드온 설치](#브라우저-애드온-설치) 섹션을 참고하세요.
 
-## 작동 순서
+### 방법 2: 직접 실행
 
-1. **브라우저:** 사용자가 이미지 위에 있는 버튼을 클릭합니다. 브라우저는 이미지 정보를 서버로 보냅니다.
-2. **서버:** 이미지를 다운로드해 PaddleOCR, manga-ocr 등의 OCR 엔진을 이용해 텍스트를 추출합니다.
-3. **서버:** 설정된 AI 모델로 추출된 텍스트를 전송해 번역합니다.
-4. **서버:** 원본 이미지에서 망풍선 텍스트를 지우고 그 위에 번역된 텍스트를 삽입합니다. 완성된 이미지를 브라우저로 전송합니다.
-5. **브라우저:** 받은 이미지를 원본 이미지 위에 합칩니다. 이제 사용자는 번역된 만화를 확인할수 있습니다.
+요구사항: [Bun](https://bun.sh), [NodeJS](https://nodejs.org/ko), [Git](https://git-scm.com/)
 
-## 확장 프로그램 설치
+1. 아래 명령어로 Git 레포를 클론하고 실행할수 있습니다:
 
-### Firefox Add-ons에서 설치 (권장)
+```sh
+git clone https://github.com/gpdir16/MangoTL.git
+cd MangoTL
+bun install
+bun run start
+```
+
+> 설정은 `server/secrets/settings.json`에 저장됩니다.
+
+2. localhost:8787/config 에서 제공자, API 키, 모델을 지정합니다.
+3. 이제 브라우저 애드온을 통해 MangoTL을 사용할 수 있습니다. 브라우저 애드온 설치는 [브라우저 애드온 설치](#브라우저-애드온-설치) 섹션을 참고하세요.
+
+## 브라우저 애드온 설치 및 설정
+
+### 방법 1: Firefox Add-ons에서 설치 (권장)
 
 1. [Firefox Add-ons](https://addons.mozilla.org/ko-KR/firefox/addon/mangotl/)에서 설치합니다.
+2. 설치된 애드온 아이콘을 클릭 한 후 팝업에서 설정을 열어 서버 URL(변경한 경우)와 도착 언어를 설정합니다.
+3. 이제 웹사이트에서 이미지를 바로 번역할수 있습니다. 위의 지원 웹사이트에서 시도해보세요.
 
-### 직접 빌드 후 임시 설치
+### 방법 2: 직접 빌드 후 임시 설치
 
 1. 릴리스 zip 빌드: `bun run release:extension`
 2. Firefox에서 `about:debugging` → **이 Firefox** → **임시 부가 기능 로드** 후 `extension/` 안의 파일을 선택합니다.
+3. 설치된 애드온 아이콘을 클릭 한 후 팝업에서 설정을 열어 서버 URL(변경한 경우)와 도착 언어를 설정합니다.
+4. 이제 웹사이트에서 이미지를 바로 번역할수 있습니다. 위의 지원 웹사이트에서 시도해보세요.
 
 ## 문서
 
