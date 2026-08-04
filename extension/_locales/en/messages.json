@@ -58,6 +58,9 @@
     "contentCloseButton": {
         "message": "Close"
     },
+    "contentRevertButton": {
+        "message": "Show original"
+    },
     "contentServerDefaultLanguage": {
         "message": "Server default"
     },

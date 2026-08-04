@@ -123,7 +123,8 @@
 }
 
 .mangotl-translation-submit,
-.mangotl-translation-close {
+.mangotl-translation-close,
+.mangotl-translation-revert {
     min-height: 28px;
     border: 0;
     border-radius: 6px;
@@ -140,6 +141,16 @@
 .mangotl-translation-close {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mangotl-translation-revert {
+    grid-column: 1 / -1;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mangotl-translation-revert[hidden] {
+    display: none;
 }
 
 .mangotl-status-panel {

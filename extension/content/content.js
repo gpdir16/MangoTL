@@ -687,6 +687,7 @@ function ensureTranslationPopup() {
     const actions = document.createElement("div");
     const translateButton = document.createElement("button");
     const closeButton = document.createElement("button");
+    const revertButton = document.createElement("button");
 
     form.className = "mangotl-translation-popup";
     form.hidden = true;
@@ -734,9 +735,24 @@ function ensureTranslationPopup() {
         closeTranslationPopup();
     });
 
+    revertButton.className = "mangotl-translation-revert";
+    revertButton.type = "button";
+    revertButton.textContent = t("contentRevertButton");
+    revertButton.hidden = true;
+    revertButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const control = overlayState.activeControl;
+        if (!control) {
+            return;
+        }
+        revertImageTranslation(control);
+        closeTranslationPopup(control);
+    });
+
     sourceRow.append(sourceLabel, sourceSelect);
     targetRow.append(targetLabel, targetValue);
-    actions.append(translateButton, closeButton);
+    actions.append(translateButton, closeButton, revertButton);
     form.append(sourceRow, targetRow, actions);
     (document.body || document.documentElement).append(form);
 
@@ -746,6 +762,7 @@ function ensureTranslationPopup() {
         targetValue,
         translateButton,
         closeButton,
+        revertButton,
     };
 
     return overlayState.translationPopup;
@@ -755,6 +772,8 @@ function syncTranslationPopup(control) {
     const popup = ensureTranslationPopup();
     renderSourceLanguageOptions(popup.sourceSelect, control.sourceLanguage || overlayState.sourceLanguage);
     popup.targetValue.textContent = formatLanguage("targets", overlayState.targetLanguage);
+    const result = overlayState.resultsByKey.get(getControlTranslationKey(control));
+    popup.revertButton.hidden = !result;
 }
 
 function renderSourceLanguageOptions(select, selectedLanguage) {
@@ -933,6 +952,12 @@ async function translateImageFromControl(control, sourceLanguage) {
         overlayState.inFlightByKey.delete(translationKey);
         reconcileOverlays();
     }
+}
+
+function revertImageTranslation(control) {
+    const translationKey = getControlTranslationKey(control);
+    overlayState.resultsByKey.delete(translationKey);
+    reconcileOverlays();
 }
 
 async function requestImageTranslation(entry, sourceLanguage, signal) {

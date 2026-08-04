@@ -58,6 +58,9 @@
     "contentCloseButton": {
         "message": "닫기"
     },
+    "contentRevertButton": {
+        "message": "원본으로"
+    },
     "contentServerDefaultLanguage": {
         "message": "서버 기본값"
     },
