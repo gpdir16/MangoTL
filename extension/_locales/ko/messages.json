@@ -84,6 +84,12 @@
     "contentServerUnavailableBody": {
         "message": "설정에서 서버 URL을 확인해 주세요."
     },
+    "contentTranslatePasswordTitle": {
+        "message": "번역 비밀번호 필요"
+    },
+    "contentTranslatePasswordBody": {
+        "message": "서버에 번역 비밀번호가 설정되어 있습니다. 설정을 열고 서버 탭의 번역 비밀번호를 입력해 주세요."
+    },
     "contentOpenSettings": {
         "message": "설정 열기"
     },
@@ -186,6 +192,12 @@
     "optionsHintServerUrl": {
         "message": "서버 URL을 바꾸면 도착 언어 목록을 새로고침합니다."
     },
+    "optionsTranslatePasswordLabel": {
+        "message": "번역 비밀번호"
+    },
+    "optionsHintTranslatePassword": {
+        "message": "서버에 번역 비밀번호가 설정된 경우에만 필요합니다."
+    },
     "optionsSaveSuccess": {
         "message": "성공적으로 설정을 적용했습니다."
     },
@@ -253,5 +265,14 @@
     },
     "optionsServerInstallGuideLink": {
         "message": "서버 설치 가이드 열기"
+    },
+    "contentTranslatePasswordIncorrectTitle": {
+        "message": "번역 비밀번호가 올바르지 않습니다"
+    },
+    "contentTranslatePasswordIncorrectBody": {
+        "message": "옵션에서 번역 비밀번호를 확인한 후 다시 시도해 주세요."
+    },
+    "optionsTranslatePasswordNotSet": {
+        "message": "설정 안함"
     }
 }

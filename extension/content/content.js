@@ -3,6 +3,7 @@ const DEFAULT_SETTINGS = {
     imageFetchStrategy: "canvas-first",
     imageFetchCredentials: "omit",
     canvasQuality: 0.95,
+    translatePassword: "",
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 const { languageLabel, t } = MangoTLI18n;
@@ -10,6 +11,8 @@ const OVERLAY_INTERACTIVE_SELECTOR = ".mangotl-overlay-container, .mangotl-trans
 
 const overlayState = {
     serverUrl: DEFAULT_SETTINGS.serverUrl,
+    translatePassword: DEFAULT_SETTINGS.translatePassword,
+    translatePasswordRequired: false,
     serverConfig: null,
     serverAvailable: true,
     languagePreferences: {},
@@ -25,7 +28,7 @@ const overlayState = {
     inFlightByKey: new Map(),
     resizeObserver: null,
     overlayUpdateFrame: null,
-    overlayReconcileFrame: null,
+    overlayReconcileTimer: null,
     configRefreshTimer: null,
     activeControl: null,
     activeStatusControl: null,
@@ -49,7 +52,14 @@ function handleStorageChange(changes, areaName) {
         return;
     }
 
-    if (changes.serverUrl || changes.imageFetchStrategy || changes.imageFetchCredentials || changes.canvasQuality || changes[LANGUAGE_PREFS_KEY]) {
+    if (
+        changes.serverUrl ||
+        changes.translatePassword ||
+        changes.imageFetchStrategy ||
+        changes.imageFetchCredentials ||
+        changes.canvasQuality ||
+        changes[LANGUAGE_PREFS_KEY]
+    ) {
         scheduleConfigurationRefresh();
     }
 }
@@ -179,6 +189,8 @@ async function refreshConfiguration() {
     const contextChanged = overlayState.translationContext && overlayState.translationContext !== translationContext;
 
     overlayState.serverUrl = serverUrl;
+    overlayState.translatePassword = settings.translatePassword || "";
+    overlayState.translatePasswordRequired = Boolean(serverConfig?.security?.translatePasswordSet);
     overlayState.serverConfig = serverConfig;
     overlayState.serverAvailable = serverAvailable;
     overlayState.languagePreferences = languagePreferences;
@@ -228,6 +240,7 @@ function normalizeServerConfig(config) {
         defaults: config?.defaults || {},
         languages: config?.languages || {},
         websites: Array.isArray(config?.websites) ? config.websites : [],
+        security: config?.security || {},
     };
 }
 
@@ -418,14 +431,18 @@ function scheduleOverlayUpdate() {
 }
 
 function scheduleOverlayReconcile() {
-    if (overlayState.overlayReconcileFrame !== null) {
-        return;
+    if (overlayState.overlayReconcileTimer !== null) {
+        clearTimeout(overlayState.overlayReconcileTimer);
     }
 
-    overlayState.overlayReconcileFrame = requestAnimationFrame(() => {
-        overlayState.overlayReconcileFrame = null;
+    // Debounced: re-render-heavy sites (e.g. X) fire constant mutations, and
+    // hover-driven lazy loading briefly removes images before re-adding them.
+    // Waiting a beat lets transient DOM churn settle so controls (and the open
+    // popup) are rebound instead of torn down.
+    overlayState.overlayReconcileTimer = setTimeout(() => {
+        overlayState.overlayReconcileTimer = null;
         reconcileOverlays();
-    });
+    }, 120);
 }
 
 function reconcileOverlays() {
@@ -439,10 +456,24 @@ function reconcileOverlays() {
 
     for (const [image, control] of overlayState.controlsByImage) {
         const nextEntry = entriesByImage.get(image);
+        const parentMoved = control.container.parentElement !== image.parentElement;
 
-        if (!nextEntry || control.container.parentElement !== image.parentElement) {
-            removeControl(image);
+        if (nextEntry && !parentMoved) {
+            continue;
         }
+
+        // Sites frequently replace the image node on re-render (hover-driven
+        // lazy loading, React reconciliation). Rebinding the control — and the
+        // open popup bound to it — to the replacement image keeps the UI
+        // stable instead of tearing it down under the user's cursor.
+        const replacement = nextEntry || findImageReplacement(control.container.parentElement, image, imageEntries);
+
+        if (replacement) {
+            rebindControl(control, image, replacement);
+            continue;
+        }
+
+        removeControl(image);
     }
 
     ensureResizeObserver();
@@ -512,6 +543,8 @@ function ensureServerStatusPopup() {
 
     overlayState.serverStatusPopup = {
         element: panel,
+        title,
+        body,
         openSettings,
     };
 
@@ -550,6 +583,16 @@ function createImageControl(entry) {
     return control;
 }
 
+function patchOverlayParent(parent) {
+    if (getComputedStyle(parent).position === "static") {
+        if (!parent.dataset.mangotlPositionPatched) {
+            parent.dataset.mangotlOriginalPosition = parent.style.position || "";
+        }
+        parent.dataset.mangotlPositionPatched = "true";
+        parent.style.position = "relative";
+    }
+}
+
 function createImageOverlayContainer(image) {
     const wrapper = image.parentElement;
 
@@ -557,15 +600,7 @@ function createImageOverlayContainer(image) {
         throw new Error("Cannot create overlay for a detached image.");
     }
 
-    const computedStyle = getComputedStyle(wrapper);
-
-    if (computedStyle.position === "static") {
-        if (!wrapper.dataset.mangotlPositionPatched) {
-            wrapper.dataset.mangotlOriginalPosition = wrapper.style.position || "";
-        }
-        wrapper.dataset.mangotlPositionPatched = "true";
-        wrapper.style.position = "relative";
-    }
+    patchOverlayParent(wrapper);
 
     const container = document.createElement("div");
     container.className = "mangotl-overlay-container";
@@ -590,10 +625,10 @@ function syncContainerToImage(container, image) {
 
 function updateOverlayPositions() {
     for (const [image, control] of overlayState.controlsByImage) {
-        const rect = image.getBoundingClientRect();
-
-        if (rect.width === 0 || rect.height === 0 || !image.isConnected) {
-            removeControl(image);
+        if (!image.isConnected) {
+            // Transiently detached (hover-driven re-render). The debounced
+            // reconcile rebinds the control to the replacement image or removes
+            // it for real — removing it here races the rebind.
             continue;
         }
 
@@ -912,6 +947,19 @@ async function translateImageFromControl(control, sourceLanguage) {
         }
     }
 
+    // The server requires a translate password but the add-on does not have one
+    // configured. Refresh the config first in case the requirement changed since
+    // this page loaded (e.g. the password was removed server-side); only guide
+    // the user when it is still required.
+    if (overlayState.translatePasswordRequired && !overlayState.translatePassword) {
+        await refreshConfiguration();
+
+        if (overlayState.translatePasswordRequired && !overlayState.translatePassword) {
+            showTranslatePasswordNotice(control);
+            return;
+        }
+    }
+
     if (!overlayState.controlsByImage.has(entry.element)) {
         return;
     }
@@ -947,6 +995,20 @@ async function translateImageFromControl(control, sourceLanguage) {
             return;
         }
 
+        // Fallback: the server rejected a request for a missing/incorrect translate
+        // password (e.g. it was set after this page loaded). Same guidance as the
+        // proactive check. Deferred past the finally block, whose reconcileOverlays
+        // -> setButtonState would otherwise hide the notice immediately.
+        if (error?.message === "Translate password required.") {
+            setTimeout(() => showTranslatePasswordNotice(control), 0);
+            return;
+        }
+
+        if (error?.message === "Translate password is incorrect.") {
+            setTimeout(() => showTranslatePasswordNotice(control, "incorrect"), 0);
+            return;
+        }
+
         throw error;
     } finally {
         overlayState.inFlightByKey.delete(translationKey);
@@ -976,6 +1038,7 @@ async function requestImageTranslation(entry, sourceLanguage, signal) {
 
     const params = {
         serverUrl: overlayState.serverUrl,
+        translatePassword: overlayState.translatePassword,
         imageUrl: entry.url,
         imageFetch: overlayState.website?.imageFetch || {},
         imageFetchCredentials: overlayState.imageFetchCredentials,
@@ -1096,7 +1159,11 @@ function setMatchingControlsState(translationKey, state, message = "") {
 }
 
 function setButtonState(control, state, message = "") {
-    if (overlayState.serverAvailable) {
+    // Only dismiss the status notice when the state actually changes — a
+    // reconcile re-sets every button to its current state (idle -> idle) on
+    // any DOM mutation, which on re-render-heavy sites (e.g. X) would hide
+    // the notice right after it appears.
+    if (state !== control.button.dataset.state && overlayState.serverAvailable) {
         hideServerUnavailableNotice(control);
     }
 
@@ -1122,15 +1189,30 @@ function setButtonState(control, state, message = "") {
     control.button.disabled = state === "running";
 }
 
-function showServerUnavailableNotice(control) {
+function showStatusNotice(control, title, body) {
     hideAllServerUnavailableNotices();
 
     const popup = ensureServerStatusPopup();
+    popup.title.textContent = title;
+    popup.body.textContent = body;
 
     overlayState.activeStatusControl = control;
     popup.element.hidden = false;
     control.button.setAttribute("aria-expanded", "true");
     positionServerStatusPopup();
+}
+
+function showServerUnavailableNotice(control) {
+    showStatusNotice(control, t("contentServerUnavailableTitle"), t("contentServerUnavailableBody"));
+}
+
+function showTranslatePasswordNotice(control, variant = "required") {
+    const incorrect = variant === "incorrect";
+    showStatusNotice(
+        control,
+        t(incorrect ? "contentTranslatePasswordIncorrectTitle" : "contentTranslatePasswordTitle"),
+        t(incorrect ? "contentTranslatePasswordIncorrectBody" : "contentTranslatePasswordBody"),
+    );
 }
 
 function hideServerUnavailableNotice(control) {
@@ -1157,6 +1239,59 @@ function hideAllServerUnavailableNotices() {
 
 function isServerUnavailableNoticeOpen() {
     return Boolean(overlayState.serverStatusPopup && overlayState.serverStatusPopup.element.hidden === false);
+}
+
+function findImageReplacement(anchorParent, image, imageEntries) {
+    if (!anchorParent || !anchorParent.isConnected) {
+        // The overlay container's parent was detached (the site re-mounted the
+        // wrapper). Look anywhere in the document for an unbound image with the
+        // same source instead of giving up.
+        return (
+            imageEntries.find(
+                (entry) =>
+                    entry.element !== image && entry.element.currentSrc === image.currentSrc && !overlayState.controlsByImage.has(entry.element),
+            ) || null
+        );
+    }
+
+    const candidates = imageEntries.filter(
+        (entry) => entry.element !== image && entry.element.parentElement === anchorParent && !overlayState.controlsByImage.has(entry.element),
+    );
+
+    if (candidates.length === 0) {
+        return null;
+    }
+
+    return candidates.find((entry) => entry.element.currentSrc === image.currentSrc) || candidates[0];
+}
+
+function rebindControl(control, oldImage, nextEntry) {
+    const newImage = nextEntry.element;
+    const newParent = newImage.parentElement;
+    const oldParent = control.container.parentElement;
+
+    if (newParent && oldParent !== newParent) {
+        patchOverlayParent(newParent);
+        newParent.appendChild(control.container);
+        restorePatchedParentIfUnused(oldParent);
+    }
+
+    overlayState.resizeObserver?.unobserve(oldImage);
+
+    if (oldImage.parentElement) {
+        overlayState.resizeObserver?.unobserve(oldImage.parentElement);
+    }
+
+    overlayState.controlsByImage.delete(oldImage);
+    overlayState.controlsByImage.set(newImage, control);
+    control.entry = nextEntry;
+    overlayState.resizeObserver?.observe(newImage);
+
+    if (newParent) {
+        overlayState.resizeObserver?.observe(newParent);
+    }
+
+    syncContainerToImage(control.container, newImage);
 }
 
 function removeControl(image) {
@@ -1214,9 +1349,9 @@ function clearOverlays() {
         overlayState.overlayUpdateFrame = null;
     }
 
-    if (overlayState.overlayReconcileFrame !== null) {
-        cancelAnimationFrame(overlayState.overlayReconcileFrame);
-        overlayState.overlayReconcileFrame = null;
+    if (overlayState.overlayReconcileTimer !== null) {
+        clearTimeout(overlayState.overlayReconcileTimer);
+        overlayState.overlayReconcileTimer = null;
     }
 
     const patchedParents = new Set();

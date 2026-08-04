@@ -18,6 +18,12 @@ export function buildPublicConfig(config) {
             targets: normalizeLanguageOptions(config.languageSettings?.targetOptions, [config.defaultTargetLanguage].filter(Boolean)),
         },
         websites: config.websites.map(toPublicWebsiteConfig),
+        // Lets the add-on warn the user (and send the password) when the server
+        // has a translate password set. Booleans only — never any hash.
+        security: {
+            settingsPasswordSet: Boolean(config.security?.settingsPasswordHash),
+            translatePasswordSet: Boolean(config.security?.translatePasswordHash),
+        },
     };
 }
 

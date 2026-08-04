@@ -3,6 +3,7 @@ const DEFAULT_SETTINGS = {
     imageFetchStrategy: "canvas-first",
     imageFetchCredentials: "omit",
     canvasQuality: 0.95,
+    translatePassword: "",
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 
@@ -108,7 +109,18 @@ async function proxyServerConfig(serverUrl) {
 }
 
 async function proxyTranslateImage(params, signal) {
-    const { serverUrl, imageUrl, imageDataUrl, imageFetch, imageFetchCredentials, imageId, sourceLanguage, targetLanguage, websiteId } = params;
+    const {
+        serverUrl,
+        imageUrl,
+        imageDataUrl,
+        imageFetch,
+        imageFetchCredentials,
+        imageId,
+        sourceLanguage,
+        targetLanguage,
+        websiteId,
+        translatePassword,
+    } = params;
     const image = imageDataUrl ? await fetchImageBytesFromDataUrl(imageDataUrl) : await fetchImageBytes(imageUrl, imageFetch, imageFetchCredentials);
     const formData = new FormData();
     formData.append("image", new Blob([image.buffer], { type: image.contentType }), "image");
@@ -120,9 +132,15 @@ async function proxyTranslateImage(params, signal) {
     if (websiteId) query.set("websiteId", websiteId);
     const queryString = query.toString();
 
+    const headers = {};
+    if (translatePassword) {
+        headers["X-Access-Key"] = translatePassword;
+    }
+
     const response = await fetch(`${serverUrl}/api/translate${queryString ? `?${queryString}` : ""}`, {
         method: "POST",
         body: formData,
+        headers,
         signal,
     });
 

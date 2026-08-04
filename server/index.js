@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { readFile } from "node:fs/promises";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import {
     loadStaticServerConfig,
     loadUserSettings,
@@ -22,6 +23,7 @@ if (!initialConfig.defaultProvider || !initialConfig.defaultModel) {
 }
 
 const port = initialConfig.port;
+const hostname = initialConfig.host;
 
 // Settings saved to server/secrets/settings.json take effect on the next request
 // (no restart needed). Port is the exception: rebinding requires a restart.
@@ -34,7 +36,7 @@ const app = new Elysia()
     .onRequest(({ set }) => {
         set.headers["Access-Control-Allow-Origin"] = "*";
         set.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
-        set.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization";
+        set.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization,X-Access-Key";
     })
     .options("/*", ({ set }) => {
         set.status = 204;
@@ -61,8 +63,18 @@ const app = new Elysia()
                 headers: { "Content-Type": "text/html; charset=utf-8" },
             }),
     )
-    .get("/api/settings", async () => {
+    .get("/api/settings", async ({ request, set }) => {
         const settings = await loadUserSettings();
+        const settingsHash = settings.security?.settingsPasswordHash;
+
+        // Once a settings password is set, the saved values (provider/model/masked
+        // key preview) are gated behind it — the settings page shows a lock screen
+        // until the password is supplied via the X-Access-Key header.
+        if (settingsHash && !verifyPassword(accessKeyFrom(request), settingsHash)) {
+            set.status = 401;
+            return { error: "unauthorized", message: "Settings password required.", settingsPasswordRequired: true };
+        }
+
         return {
             providers: staticConfig.providers.map(({ id, name, apiKeyOptional }) => ({ id, name, apiKeyOptional: Boolean(apiKeyOptional) })),
             settings: {
@@ -75,6 +87,11 @@ const app = new Elysia()
                 targetLanguage: settings.targetLanguage || staticConfig.appDefaults.targetLanguage || "",
                 maxImageBytes: getPositiveInteger(settings.maxImageBytes, staticConfig.appDefaults.maxImageBytes),
                 port: getPositiveInteger(settings.port, staticConfig.appDefaults.port) || 8787,
+                host: (settings.host && String(settings.host).trim()) || staticConfig.appDefaults.host || "0.0.0.0",
+                security: {
+                    settingsPasswordSet: Boolean(settingsHash),
+                    translatePasswordSet: Boolean(settings.security?.translatePasswordHash),
+                },
             },
         };
     })
@@ -86,11 +103,20 @@ const app = new Elysia()
                 return { error: "forbidden", message: "Cross-origin settings changes are not allowed." };
             }
 
+            // Bootstrap: while no settings password is set yet, anyone reachable can
+            // configure the server (including setting that first password). Once set,
+            // every change — including changing/removing the password itself — needs it.
+            const current = await loadUserSettings();
+            if (current.security?.settingsPasswordHash && !verifyPassword(accessKeyFrom(request), current.security.settingsPasswordHash)) {
+                set.status = 401;
+                return { error: "unauthorized", message: "Settings password required.", settingsPasswordRequired: true };
+            }
+
             if (!body || typeof body !== "object") {
                 throw new HttpError(400, "invalid_body", "Request body must be a JSON object.");
             }
 
-            const updated = applySettingsUpdate(await loadUserSettings(), body, staticConfig);
+            const updated = applySettingsUpdate(current, body, staticConfig);
             await saveUserSettings(updated);
             return { ok: true };
         },
@@ -98,8 +124,25 @@ const app = new Elysia()
     )
     .post(
         "/api/translate",
-        async ({ body, query }) => {
+        async ({ request: httpRequest, body, query, set }) => {
             const config = await getRequestConfig();
+
+            const translatePasswordHash = config.security?.translatePasswordHash;
+
+            if (translatePasswordHash) {
+                const accessKey = accessKeyFrom(httpRequest);
+
+                if (!accessKey) {
+                    set.status = 401;
+                    return { error: "unauthorized", message: "Translate password required.", translatePasswordRequired: true };
+                }
+
+                if (!verifyPassword(accessKey, translatePasswordHash)) {
+                    set.status = 401;
+                    return { error: "unauthorized", message: "Translate password is incorrect.", translatePasswordIncorrect: true };
+                }
+            }
+
             const request = await normalizeTranslateRequest(body, query, config);
             const startTime = Date.now();
 
@@ -138,10 +181,11 @@ const app = new Elysia()
             }),
         },
     )
-    .listen(port);
+    .listen({ port, hostname });
 
 console.log("[MangoTL] Server starting...");
 console.log(`[MangoTL] Listening on http://localhost:${app.server?.port || port}`);
+console.log(`[MangoTL] Bind address: ${hostname}`);
 console.log("[MangoTL] Detection Engine:", initialConfig.defaultDetectionEngine);
 console.log("[MangoTL] OCR Engine fallback:", initialConfig.defaultOcrEngine);
 console.log("[MangoTL] OCR Language routing:", initialConfig.ocrRouting?.languages || {});
@@ -170,6 +214,41 @@ function maskApiKey(apiKey) {
 
     // Mask length mirrors the real remaining key length.
     return `${prefix}${keyPart.slice(0, 4)}${"•".repeat(keyPart.length - 4)}`;
+}
+
+// Passwords are hashed with scrypt + a per-password random salt (node:crypto,
+// no dependencies). Stored as "saltHex:hashHex". An empty stored value means the
+// password is not set, which is also the bootstrap state that lets the first
+// settings password be configured without authentication.
+function hashPassword(password) {
+    const salt = randomBytes(16);
+    const hash = scryptSync(password, salt, 32);
+    return `${salt.toString("hex")}:${hash.toString("hex")}`;
+}
+
+function verifyPassword(password, stored) {
+    if (!password || typeof stored !== "string" || !stored) {
+        return false;
+    }
+
+    const [saltHex, hashHex] = stored.split(":");
+    if (!saltHex || !hashHex) {
+        return false;
+    }
+
+    try {
+        const hash = scryptSync(password, Buffer.from(saltHex, "hex"), 32);
+        // ponytail: scryptSync per gated request (~tens of ms); translation itself
+        // takes seconds so this is noise. Move to a cached verify if a high-QPS
+        // public translate endpoint ever needs it.
+        return timingSafeEqual(hash, Buffer.from(hashHex, "hex"));
+    } catch {
+        return false;
+    }
+}
+
+function accessKeyFrom(request) {
+    return request.headers.get("x-access-key") || "";
 }
 
 // Only same-origin requests (the settings page itself) may change settings,
@@ -233,6 +312,41 @@ function applySettingsUpdate(current, update, staticConfig) {
             }
 
             updated[key] = value;
+        }
+    }
+
+    // Bind address (e.g. 0.0.0.0 for all interfaces, 127.0.0.1 for localhost only).
+    // Like port, it only takes effect after a restart.
+    if ("host" in update) {
+        const host = String(update.host ?? "").trim();
+
+        if (!host) {
+            throw new HttpError(400, "invalid_host", "Host must not be empty.");
+        }
+
+        updated.host = host;
+    }
+
+    // Independent passwords for settings changes and translation usage.
+    // A non-empty string sets/replaces the password (hashed before storage);
+    // null removes it; an empty string leaves the current value unchanged.
+    if ("security" in update && update.security && typeof update.security === "object") {
+        const sec = update.security;
+        updated.security = { ...(current.security || {}) };
+
+        for (const [field, hashField] of [
+            ["settingsPassword", "settingsPasswordHash"],
+            ["translatePassword", "translatePasswordHash"],
+        ]) {
+            if (field in sec) {
+                const value = sec[field];
+
+                if (value === null) {
+                    updated.security[hashField] = "";
+                } else if (typeof value === "string" && value.trim()) {
+                    updated.security[hashField] = hashPassword(value.trim());
+                }
+            }
         }
     }
 

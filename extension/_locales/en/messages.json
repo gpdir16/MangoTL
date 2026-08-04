@@ -84,6 +84,12 @@
     "contentServerUnavailableBody": {
         "message": "Check the server URL in Settings."
     },
+    "contentTranslatePasswordTitle": {
+        "message": "Translate password required"
+    },
+    "contentTranslatePasswordBody": {
+        "message": "The server requires a translate password. Open Settings and enter it in the Server tab (Translate password)."
+    },
     "contentOpenSettings": {
         "message": "Open Settings"
     },
@@ -186,6 +192,12 @@
     "optionsHintServerUrl": {
         "message": "Changing the server URL refreshes the target language list."
     },
+    "optionsTranslatePasswordLabel": {
+        "message": "Translate password"
+    },
+    "optionsHintTranslatePassword": {
+        "message": "Required only if the server has a translate password set."
+    },
     "optionsSaveSuccess": {
         "message": "Successfully applied settings."
     },
@@ -253,5 +265,14 @@
     },
     "optionsServerInstallGuideLink": {
         "message": "Open server setup guide"
+    },
+    "contentTranslatePasswordIncorrectTitle": {
+        "message": "Incorrect translate password"
+    },
+    "contentTranslatePasswordIncorrectBody": {
+        "message": "The translate password you entered is not correct. Check it in the extension options and try again."
+    },
+    "optionsTranslatePasswordNotSet": {
+        "message": "Not set"
     }
 }

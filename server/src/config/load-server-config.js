@@ -15,6 +15,11 @@ const defaultSettings = {
     sourceLanguage: "ja",
     targetLanguage: "ko",
     maxImageBytes: 20971520,
+    host: "0.0.0.0",
+    security: {
+        settingsPasswordHash: "",
+        translatePasswordHash: "",
+    },
 };
 
 // Static config (providers, OCR engines, websites, defaults) is loaded once at boot.
@@ -32,6 +37,7 @@ export async function loadStaticServerConfig() {
     return {
         appDefaults: {
             port: app.port || 8787,
+            host: app.host || "0.0.0.0",
             maxImageBytes: app.security?.maxImageBytes || null,
             sourceLanguage: app.languages?.source || null,
             targetLanguage: app.languages?.target || null,
@@ -69,15 +75,22 @@ export async function saveUserSettings(settings) {
 }
 
 export function applyUserSettings(staticConfig, settings) {
+    const security = settings && typeof settings.security === "object" && !Array.isArray(settings.security) ? settings.security : {};
+
     return {
         ...staticConfig,
         port: getPositiveInteger(settings.port, staticConfig.appDefaults.port) || 8787,
+        host: (settings.host && String(settings.host).trim()) || staticConfig.appDefaults.host || "0.0.0.0",
         maxImageBytes: getPositiveInteger(settings.maxImageBytes, staticConfig.appDefaults.maxImageBytes),
         defaultSourceLanguage: settings.sourceLanguage || staticConfig.appDefaults.sourceLanguage,
         defaultTargetLanguage: settings.targetLanguage || staticConfig.appDefaults.targetLanguage,
         defaultProvider: settings.provider || null,
         defaultModel: settings.model || null,
         apiKey: settings.apiKey || null,
+        security: {
+            settingsPasswordHash: security.settingsPasswordHash || "",
+            translatePasswordHash: security.translatePasswordHash || "",
+        },
     };
 }
 

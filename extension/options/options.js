@@ -3,6 +3,7 @@ const DEFAULT_SETTINGS = {
     imageFetchStrategy: "canvas-first",
     imageFetchCredentials: "omit",
     canvasQuality: 0.95,
+    translatePassword: "",
 };
 const LANGUAGE_PREFS_KEY = "mangotlLanguagePreferences";
 const { getLocale, languageLabel, localizeDocument, t } = MangoTLI18n;
@@ -17,6 +18,7 @@ let original = null;
 
 const messageEl = document.getElementById("message");
 const serverUrlEl = document.getElementById("server-url");
+const translatePasswordEl = document.getElementById("translate-password");
 const targetLanguageEl = document.getElementById("target-language");
 const imageFetchStrategyEl = document.getElementById("image-fetch-strategy");
 const imageFetchCredentialsEl = document.getElementById("image-fetch-credentials");
@@ -61,6 +63,7 @@ function formSnapshot() {
     const saved = original || {};
     return {
         serverUrl: serverUrlEl.value.trim(),
+        translatePassword: translatePasswordEl.value.trim(),
         targetLanguage: targetLanguageEl.value,
         imageFetchStrategy: imageFetchStrategyEl.value,
         imageFetchCredentials: imageFetchCredentialsEl.value,
@@ -72,7 +75,7 @@ function updateFieldButtons() {
     const snapshot = formSnapshot();
     const saved = original || {};
 
-    for (const key of ["serverUrl", "targetLanguage", "imageFetchStrategy", "imageFetchCredentials", "canvasQuality"]) {
+    for (const key of ["serverUrl", "translatePassword", "targetLanguage", "imageFetchStrategy", "imageFetchCredentials", "canvasQuality"]) {
         const button = document.querySelector(`[data-save="${key}"]`);
         const changed = snapshot[key] !== saved[key];
         button.hidden = key === "targetLanguage" ? !(targetLanguageEl.disabled === false && changed) : !changed;
@@ -100,6 +103,7 @@ async function loadSettings() {
     };
 
     serverUrlEl.value = settings.serverUrl;
+    translatePasswordEl.value = settings.translatePassword || "";
     imageFetchStrategyEl.value = settings.imageFetchStrategy || DEFAULT_SETTINGS.imageFetchStrategy;
     imageFetchCredentialsEl.value = settings.imageFetchCredentials || DEFAULT_SETTINGS.imageFetchCredentials;
     canvasQualityEl.value = parseFloat(settings.canvasQuality) || DEFAULT_SETTINGS.canvasQuality;
@@ -373,6 +377,7 @@ document
     );
 
 serverUrlEl.addEventListener("input", updateFieldButtons);
+translatePasswordEl.addEventListener("input", updateFieldButtons);
 targetLanguageEl.addEventListener("change", updateFieldButtons);
 imageFetchStrategyEl.addEventListener("change", updateFieldButtons);
 imageFetchCredentialsEl.addEventListener("change", updateFieldButtons);

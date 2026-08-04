@@ -101,6 +101,24 @@
                             <button type="button" class="field-save" data-save="serverUrl" hidden data-i18n="optionsSaveButton">Save</button>
                         </div>
                     </div>
+
+                    <div class="field">
+                        <label>
+                            <span data-i18n="optionsTranslatePasswordLabel">Translate password</span>
+                            <span class="hint" data-i18n="optionsHintTranslatePassword">
+                                Required only if the server has a translate password set.
+                            </span>
+                        </label>
+                        <div class="field-row">
+                            <input
+                                id="translate-password"
+                                type="password"
+                                autocomplete="off"
+                                data-i18n-attr="placeholder:optionsTranslatePasswordNotSet"
+                            />
+                            <button type="button" class="field-save" data-save="translatePassword" hidden data-i18n="optionsSaveButton">Save</button>
+                        </div>
+                    </div>
                 </section>
 
                 <section id="panel-language" class="panel">

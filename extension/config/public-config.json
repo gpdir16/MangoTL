@@ -53,5 +53,6 @@
             "urlNormalizer": { "stripHash": true, "stripQuery": true },
             "imageKeyPattern": { "match": "/media/[^/]+/(.+?)(?:\\.(?:jpg|jpeg|png|webp))$", "group": 1, "flags": "i" }
         }
-    ]
+    ],
+    "security": { "settingsPasswordSet": false, "translatePasswordSet": false }
 }

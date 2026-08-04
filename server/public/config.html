@@ -201,6 +201,27 @@
                 color: #81c784;
             }
 
+            #lock-screen {
+                position: fixed;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                padding: 16px;
+            }
+
+            #lock-message.error {
+                color: #ef9a9a;
+            }
+
+            .danger {
+                background: rgba(255, 80, 80, 0.2);
+                color: #ffb4b4;
+            }
+
+            .key-preview.ok {
+                color: #81c784;
+            }
+
             @media (max-width: 640px) {
                 .layout {
                     display: flex;
@@ -256,10 +277,25 @@
             <h1 data-i18n="pageTitle">MangoTL Server Settings</h1>
         </header>
 
-        <div class="layout">
+        <div id="lock-screen" hidden>
+            <main class="content">
+                <section class="panel active">
+                    <h2 data-i18n="lockTitle">Settings locked</h2>
+                    <p class="desc" data-i18n="lockDesc">A settings password is set. Enter it to unlock this page.</p>
+                    <div class="field-row">
+                        <input id="lock-password" type="password" autocomplete="current-password" placeholder="••••••••" />
+                    </div>
+                    <button type="button" id="lock-unlock-btn" data-i18n="unlock">Unlock</button>
+                    <p id="lock-message" class="hint" role="alert"></p>
+                </section>
+            </main>
+        </div>
+
+        <div class="layout" id="main-layout">
             <nav class="sidebar" aria-label="Settings tabs">
                 <button type="button" class="tab active" data-tab="inference" data-i18n="tabInference">AI Inference</button>
                 <button type="button" class="tab" data-tab="advanced" data-i18n="tabAdvanced">Advanced</button>
+                <button type="button" class="tab" data-tab="security" data-i18n="tabSecurity">Security</button>
                 <button type="button" id="help-btn" class="tab" data-i18n="help">Open README Help</button>
             </nav>
 
@@ -323,6 +359,77 @@
                             <button type="button" class="field-save" data-save="port" hidden data-i18n="save">Save</button>
                         </div>
                     </div>
+
+                    <div class="field">
+                        <label>
+                            <span data-i18n="labelHost">Bind address</span>
+                            <span class="hint" data-i18n="hintHost">
+                                Which network interface the server listens on (0.0.0.0 = all interfaces, 127.0.0.1 = localhost only). Changes apply
+                                after a server restart.
+                            </span>
+                        </label>
+                        <div class="field-row">
+                            <input id="host" type="text" list="host-options" placeholder="0.0.0.0" />
+                            <button type="button" class="field-save" data-save="host" hidden data-i18n="save">Save</button>
+                        </div>
+                        <datalist id="host-options">
+                            <option value="0.0.0.0"></option>
+                            <option value="127.0.0.1"></option>
+                            <option value="::"></option>
+                            <option value="::1"></option>
+                        </datalist>
+                    </div>
+                </section>
+
+                <section id="panel-security" class="panel">
+                    <h2 data-i18n="tabSecurity">Security</h2>
+                    <p class="desc" data-i18n="descSecurity">Set independent passwords for settings changes and translation usage.</p>
+
+                    <div class="field">
+                        <label>
+                            <span data-i18n="labelSettingsPassword">Settings password</span>
+                            <span class="hint" data-i18n="hintSettingsPassword">
+                                Required to change any server setting on this page, including these passwords.
+                            </span>
+                        </label>
+                        <div class="field-row">
+                            <span id="sec-settings-state" class="key-preview"></span>
+                        </div>
+                        <div id="sec-settings-input-wrap" class="field-row" hidden>
+                            <input id="sec-settings-password" type="password" autocomplete="new-password" />
+                            <button type="button" id="sec-settings-save" data-i18n="save">Save</button>
+                            <button type="button" id="sec-settings-cancel" class="secondary-btn" data-i18n="cancel">Cancel</button>
+                        </div>
+                        <div class="field-row">
+                            <button type="button" id="sec-settings-toggle" class="secondary-btn"></button>
+                            <button type="button" id="sec-settings-remove" class="secondary-btn danger" hidden data-i18n="removePassword">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>
+                            <span data-i18n="labelTranslatePassword">Translate password</span>
+                            <span class="hint" data-i18n="hintTranslatePassword">
+                                Required to use translation. The browser add-on sends it with each request.
+                            </span>
+                        </label>
+                        <div class="field-row">
+                            <span id="sec-translate-state" class="key-preview"></span>
+                        </div>
+                        <div id="sec-translate-input-wrap" class="field-row" hidden>
+                            <input id="sec-translate-password" type="password" autocomplete="new-password" />
+                            <button type="button" id="sec-translate-save" data-i18n="save">Save</button>
+                            <button type="button" id="sec-translate-cancel" class="secondary-btn" data-i18n="cancel">Cancel</button>
+                        </div>
+                        <div class="field-row">
+                            <button type="button" id="sec-translate-toggle" class="secondary-btn"></button>
+                            <button type="button" id="sec-translate-remove" class="secondary-btn danger" hidden data-i18n="removePassword">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
                 </section>
 
                 <p id="message" role="status"></p>
@@ -356,8 +463,29 @@
                     cancel: "Cancel",
                     mbHint: "≈ {mb} MB",
                     saveSuccess: "Successfully applied server settings.",
-                    saveSuccessPort: "Successfully applied server settings — a server restart is required to apply the new port.",
+                    saveSuccessRestart: "Successfully applied server settings — a server restart is required to apply the new port or bind address.",
                     saveError: "Failed to save settings: ",
+                    tabSecurity: "Security",
+                    descSecurity: "Set independent passwords for settings changes and translation usage.",
+                    labelSettingsPassword: "Settings password",
+                    labelTranslatePassword: "Translate password",
+                    hintSettingsPassword: "Required to change any server setting on this page, including these passwords.",
+                    hintTranslatePassword: "Required to use translation. The browser add-on sends it with each request.",
+                    passwordSet: "Set",
+                    passwordNotSet: "Not set",
+                    setPassword: "Set",
+                    changePassword: "Change",
+                    removePassword: "Remove",
+                    confirmRemovePassword: "Remove this password?",
+                    lockTitle: "Settings locked",
+                    lockDesc: "A settings password is set. Enter it to unlock this page.",
+                    unlock: "Unlock",
+                    lockWrongPassword: "Incorrect password.",
+                    lockSessionExpired: "Session expired. Enter the settings password to unlock.",
+                    lockError: "Could not reach the server.",
+                    labelHost: "Bind address",
+                    hintHost:
+                        "Which network interface the server listens on (0.0.0.0 = all interfaces, 127.0.0.1 = localhost only). Changes apply after a server restart.",
                 },
                 ko: {
                     pageTitle: "MangoTL 서버 설정",
@@ -384,8 +512,29 @@
                     cancel: "취소",
                     mbHint: "약 {mb} MB",
                     saveSuccess: "성공적으로 서버 설정을 적용했습니다.",
-                    saveSuccessPort: "성공적으로 서버 설정을 적용했으며 포트 적용을 위해 서버 재시작이 필요합니다.",
+                    saveSuccessRestart: "성공적으로 서버 설정을 적용했습니다 — 새 포트 또는 바인딩 주소 적용을 위해 서버 재시작이 필요합니다.",
                     saveError: "설정 저장에 실패했습니다: ",
+                    tabSecurity: "보안",
+                    descSecurity: "설정 변경과 번역 사용에 각각 독립된 비밀번호를 설정합니다.",
+                    labelSettingsPassword: "설정 비밀번호",
+                    labelTranslatePassword: "번역 비밀번호",
+                    hintSettingsPassword: "이 페이지에서 서버 설정(이 비밀번호 포함)을 변경하려면 필요합니다.",
+                    hintTranslatePassword: "번역을 사용하려면 필요합니다. 브라우저 애드온이 각 요청에 함께 전송합니다.",
+                    passwordSet: "설정됨",
+                    passwordNotSet: "설정 안 됨",
+                    setPassword: "설정",
+                    changePassword: "변경",
+                    removePassword: "제거",
+                    confirmRemovePassword: "이 비밀번호를 제거할까요?",
+                    lockTitle: "설정 잠김",
+                    lockDesc: "설정 비밀번호가 설정되어 있습니다. 이 페이지를 잠금 해제하려면 입력하세요.",
+                    unlock: "잠금 해제",
+                    lockWrongPassword: "비밀번호가 올바르지 않습니다.",
+                    lockSessionExpired: "세션이 만료되었습니다. 설정 비밀번호를 입력하여 잠금을 해제하세요.",
+                    lockError: "서버에 연결할 수 없습니다.",
+                    labelHost: "바인딩 주소",
+                    hintHost:
+                        "서버가 수신할 네트워크 인터페이스입니다 (0.0.0.0 = 모든 인터페이스, 127.0.0.1 = 로컬 전용). 변경은 서버 재시작 후 적용됩니다.",
                 },
             };
 
@@ -395,8 +544,11 @@
             let apiKeySet = false;
             let apiKeyPreview = "";
             let keyInputOpen = false;
-            let originalPort = null;
             let original = null;
+            let accessKey = sessionStorage.getItem("mangotlAccessKey") || "";
+            let settingsPasswordSet = false;
+            let translatePasswordSet = false;
+            const secInputOpen = { settings: false, translate: false };
 
             const messageEl = document.getElementById("message");
             const keyInput = document.getElementById("apiKey");
@@ -405,6 +557,11 @@
             const keyPreviewEl = document.getElementById("key-preview");
             const keyPreviewWrap = document.getElementById("key-preview-wrap");
             const keyInputWrap = document.getElementById("key-input-wrap");
+            const lockScreen = document.getElementById("lock-screen");
+            const mainLayout = document.getElementById("main-layout");
+            const lockInput = document.getElementById("lock-password");
+            const lockBtn = document.getElementById("lock-unlock-btn");
+            const lockMessage = document.getElementById("lock-message");
 
             function t(key) {
                 return I18N[lang][key];
@@ -443,12 +600,13 @@
                     model: document.getElementById("model").value.trim(),
                     maxImageBytes: numOr(document.getElementById("maxImageBytes").value, saved.maxImageBytes ?? ""),
                     port: numOr(document.getElementById("port").value, saved.port ?? ""),
+                    host: document.getElementById("host").value.trim() || saved.host || "",
                 };
             }
 
             function updateFieldButtons() {
                 const snapshot = formSnapshot();
-                for (const key of ["provider", "model", "maxImageBytes", "port"]) {
+                for (const key of ["provider", "model", "maxImageBytes", "port", "host"]) {
                     const button = document.querySelector(`[data-save="${key}"]`);
                     button.hidden = snapshot[key] === (original || {})[key];
                 }
@@ -503,7 +661,20 @@
             }
 
             async function loadSettings() {
-                const response = await fetch("/api/settings");
+                let response;
+                try {
+                    response = await fetch("/api/settings", { headers: { "X-Access-Key": accessKey } });
+                } catch {
+                    return;
+                }
+
+                if (response.status === 401) {
+                    accessKey = "";
+                    sessionStorage.removeItem("mangotlAccessKey");
+                    showLock();
+                    return;
+                }
+
                 const data = await response.json();
 
                 const providers = document.getElementById("provider");
@@ -521,30 +692,31 @@
                 document.getElementById("model").placeholder = t("placeholderModel");
                 document.getElementById("maxImageBytes").value = data.settings.maxImageBytes || "";
                 document.getElementById("port").value = data.settings.port;
+                document.getElementById("host").value = data.settings.host || "";
 
                 apiKeySet = data.settings.apiKeySet;
                 apiKeyPreview = data.settings.apiKeyPreview || "";
-                originalPort = data.settings.port;
                 keyInputOpen = false;
                 keyInput.value = "";
+                settingsPasswordSet = data.settings.security?.settingsPasswordSet || false;
+                translatePasswordSet = data.settings.security?.translatePasswordSet || false;
 
+                hideLock();
                 original = formSnapshot();
                 refreshDynamicTexts();
                 updateFieldButtons();
+                renderSecurityStates();
             }
 
             async function saveField(key) {
                 const snapshot = formSnapshot();
                 const payload = {};
-                let portChanged = false;
+                const restartNeeded = key === "port" || key === "host";
 
                 if (key === "apiKey") {
                     payload.apiKey = keyInput.value.trim();
                 } else {
                     payload[key] = snapshot[key];
-                    if (key === "port" && snapshot.port !== "" && originalPort !== null && snapshot.port !== originalPort) {
-                        portChanged = true;
-                    }
                 }
 
                 const button = document.querySelector(`[data-save="${key}"]`);
@@ -553,7 +725,7 @@
                 try {
                     response = await fetch("/api/settings", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "application/json", "X-Access-Key": accessKey },
                         body: JSON.stringify(payload),
                     });
                 } catch {
@@ -565,6 +737,12 @@
 
                 if (!response.ok) {
                     button.disabled = false;
+                    if (response.status === 401) {
+                        accessKey = "";
+                        sessionStorage.removeItem("mangotlAccessKey");
+                        showLock(t("lockSessionExpired"));
+                        return;
+                    }
                     showMessage(t("saveError") + (data.message || ""), "error");
                     return;
                 }
@@ -576,23 +754,23 @@
                     keyInput.value = "";
                 } else {
                     original[key] = snapshot[key];
-                    if (key === "port") {
-                        originalPort = snapshot.port;
-                    }
                 }
 
+                button.disabled = false;
                 refreshDynamicTexts();
                 updateFieldButtons();
-                showMessage(portChanged ? t("saveSuccessPort") : t("saveSuccess"), "success");
+                showMessage(restartNeeded ? t("saveSuccessRestart") : t("saveSuccess"), "success");
             }
 
-            const HASH_BY_TAB = { inference: "ai", advanced: "advanced" };
-            const TAB_BY_HASH = { ai: "inference", advanced: "advanced" };
+            const HASH_BY_TAB = { inference: "ai", advanced: "advanced", security: "security" };
+            const TAB_BY_HASH = { ai: "inference", advanced: "advanced", security: "security" };
 
             function activateTab(tabId) {
                 document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item.dataset.tab === tabId));
                 document.querySelectorAll(".panel").forEach((panel) => {
-                    panel.classList.toggle("active", panel.id === `panel-${tabId}`);
+                    if (panel.id) {
+                        panel.classList.toggle("active", panel.id === `panel-${tabId}`);
+                    }
                 });
             }
 
@@ -620,7 +798,7 @@
                 );
 
             document.getElementById("provider").addEventListener("change", updateFieldButtons);
-            for (const id of ["model", "apiKey", "maxImageBytes", "port"]) {
+            for (const id of ["model", "apiKey", "maxImageBytes", "port", "host"]) {
                 document.getElementById(id).addEventListener("input", updateFieldButtons);
             }
 
@@ -639,6 +817,160 @@
                 refreshDynamicTexts();
                 updateFieldButtons();
             });
+
+            function showLock(message) {
+                mainLayout.hidden = true;
+                lockScreen.hidden = false;
+                lockMessage.textContent = message || "";
+                lockMessage.className = message ? "hint error" : "hint";
+                lockInput.value = "";
+                lockInput.focus();
+            }
+
+            function hideLock() {
+                lockScreen.hidden = true;
+                mainLayout.hidden = false;
+            }
+
+            async function unlockSettings() {
+                const password = lockInput.value;
+                if (!password) {
+                    return;
+                }
+
+                lockBtn.disabled = true;
+                try {
+                    const response = await fetch("/api/settings", { headers: { "X-Access-Key": password } });
+                    if (response.ok) {
+                        accessKey = password;
+                        sessionStorage.setItem("mangotlAccessKey", password);
+                        hideLock();
+                        await loadSettings();
+                    } else {
+                        lockMessage.textContent = t("lockWrongPassword");
+                        lockMessage.className = "hint error";
+                    }
+                } catch {
+                    lockMessage.textContent = t("lockError");
+                    lockMessage.className = "hint error";
+                } finally {
+                    lockBtn.disabled = false;
+                }
+            }
+
+            lockBtn.addEventListener("click", unlockSettings);
+            lockInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    unlockSettings();
+                }
+            });
+
+            function renderSecurityStates() {
+                for (const kind of ["settings", "translate"]) {
+                    const set = kind === "settings" ? settingsPasswordSet : translatePasswordSet;
+                    const stateEl = document.getElementById(`sec-${kind}-state`);
+                    const inputWrap = document.getElementById(`sec-${kind}-input-wrap`);
+                    const input = document.getElementById(`sec-${kind}-password`);
+                    const toggle = document.getElementById(`sec-${kind}-toggle`);
+                    const remove = document.getElementById(`sec-${kind}-remove`);
+                    const save = document.getElementById(`sec-${kind}-save`);
+
+                    stateEl.textContent = set ? `✓ ${t("passwordSet")}` : t("passwordNotSet");
+                    stateEl.className = `key-preview${set ? " ok" : ""}`;
+                    inputWrap.hidden = !secInputOpen[kind];
+                    toggle.hidden = secInputOpen[kind];
+                    toggle.textContent = set ? t("changePassword") : t("setPassword");
+                    remove.hidden = !(set && !secInputOpen[kind]);
+                    save.hidden = !(secInputOpen[kind] && input.value.trim() !== "");
+                }
+            }
+
+            function toggleSecInput(kind) {
+                secInputOpen[kind] = !secInputOpen[kind];
+                renderSecurityStates();
+            }
+
+            function cancelSecInput(kind) {
+                secInputOpen[kind] = false;
+                document.getElementById(`sec-${kind}-password`).value = "";
+                renderSecurityStates();
+            }
+
+            async function saveSecurityPassword(kind, action) {
+                const input = document.getElementById(`sec-${kind}-password`);
+                const payload = { security: {} };
+
+                if (action === "remove") {
+                    payload.security[`${kind}Password`] = null;
+                } else {
+                    const value = input.value.trim();
+                    if (!value) {
+                        return;
+                    }
+                    payload.security[`${kind}Password`] = value;
+                }
+
+                const saveBtn = document.getElementById(`sec-${kind}-save`);
+                saveBtn.disabled = true;
+                let response;
+                try {
+                    response = await fetch("/api/settings", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-Access-Key": accessKey },
+                        body: JSON.stringify(payload),
+                    });
+                } catch {
+                    saveBtn.disabled = false;
+                    showMessage(t("saveError"), "error");
+                    return;
+                }
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    saveBtn.disabled = false;
+                    if (response.status === 401) {
+                        accessKey = "";
+                        sessionStorage.removeItem("mangotlAccessKey");
+                        showLock(t("lockSessionExpired"));
+                        return;
+                    }
+                    showMessage(t("saveError") + (data.message || ""), "error");
+                    return;
+                }
+
+                if (kind === "settings") {
+                    if (action === "remove") {
+                        settingsPasswordSet = false;
+                        accessKey = "";
+                        sessionStorage.removeItem("mangotlAccessKey");
+                    } else {
+                        settingsPasswordSet = true;
+                        accessKey = input.value.trim();
+                        sessionStorage.setItem("mangotlAccessKey", accessKey);
+                    }
+                } else {
+                    translatePasswordSet = action !== "remove";
+                }
+
+                secInputOpen[kind] = false;
+                input.value = "";
+                saveBtn.disabled = false;
+                renderSecurityStates();
+                updateFieldButtons();
+                showMessage(t("saveSuccess"), "success");
+            }
+
+            for (const kind of ["settings", "translate"]) {
+                document.getElementById(`sec-${kind}-toggle`).addEventListener("click", () => toggleSecInput(kind));
+                document.getElementById(`sec-${kind}-cancel`).addEventListener("click", () => cancelSecInput(kind));
+                document.getElementById(`sec-${kind}-save`).addEventListener("click", () => saveSecurityPassword(kind, "set"));
+                document.getElementById(`sec-${kind}-remove`).addEventListener("click", () => {
+                    if (confirm(t("confirmRemovePassword"))) {
+                        saveSecurityPassword(kind, "remove");
+                    }
+                });
+                document.getElementById(`sec-${kind}-password`).addEventListener("input", renderSecurityStates);
+            }
 
             loadSettings();
             applyLang();
