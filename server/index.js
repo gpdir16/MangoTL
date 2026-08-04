@@ -57,6 +57,13 @@ const app = new Elysia()
     })
     .get("/api/config", async () => buildPublicConfig(await getRequestConfig()))
     .get(
+        "/",
+        async () =>
+            new Response(await readFile(new URL("./public/index.html", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/html; charset=utf-8" },
+            }),
+    )
+    .get(
         "/config",
         async () =>
             new Response(await readFile(new URL("./public/config.html", import.meta.url), "utf8"), {
