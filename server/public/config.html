@@ -628,7 +628,7 @@
                 document.getElementById("provider-hint").textContent = keyOptional ? t("hintProviderLocal") : "";
 
                 keyPreviewEl.textContent = apiKeyPreview;
-                keyPreviewWrap.hidden = keyInputOpen || !apiKeySet;
+                keyPreviewWrap.hidden = keyInputOpen;
                 keyInputWrap.hidden = !keyInputOpen;
                 keyToggleBtn.hidden = keyInputOpen;
                 keyToggleBtn.textContent = apiKeySet ? t("changeKey") : t("setKey");
