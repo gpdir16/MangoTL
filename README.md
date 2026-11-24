@@ -41,11 +41,12 @@ You can check the full list below.
 
 ### AI Providers
 
-- [CrofAI](https://crof.ai)
+- [OpenAI-compatible endpoint](https://platform.openai.com/docs/api-reference) (custom /v1 servers)
 - [OpenRouter](https://openrouter.ai)
 - [OpenAI](https://openai.com)
 - [Synthetic](https://synthetic.new)
 - [Ollama](https://ollama.com) (local)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) (built-in local GGUF presets)
 - [Ollama Cloud](https://ollama.com)
 - [ZenMux](https://zenmux.ai)
 - [Upstage](https://upstage.ai)
@@ -64,15 +65,16 @@ Requires [Docker](https://www.docker.com/).
 
 ```sh
 docker pull ghcr.io/gpdir16/mangotl
-docker run -d --name mangotl \
+docker run -d \
     -p 8787:8787 \
     -v mangotl-secrets:/app/server/secrets \
     -v mangotl-ocr-cache:/app/server/.ocr-cache \
+    -v mangotl-llama-cache:/app/server/.llama-cache \
     --restart unless-stopped \
     ghcr.io/gpdir16/mangotl
 ```
 
-> Settings are saved to the `mangotl-secrets` volume; downloaded OCR models are cached in the `mangotl-ocr-cache` volume.
+> Settings are saved to the `mangotl-secrets` volume; OCR models are cached in `mangotl-ocr-cache`, and GGUF models are cached in `mangotl-llama-cache`. The image also contains the llama.cpp CPU runtime, so no separate inference container is needed.
 
 2. Open http://localhost:8787/config in your browser and specify the provider, API key, and model in the settings.
 3. You can now use MangoTL through the browser add-on. See the [browser add-on install](#browser-add-on-install-and-setup) section.

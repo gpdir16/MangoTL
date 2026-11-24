@@ -1,21 +1,28 @@
 import * as ort from "onnxruntime-node";
 import { cv, createCanvas, ImageProcessor } from "ppu-ocv";
 import { fetchAndCacheModelPath } from "../../utils/model-cache.js";
+import { createLamaModelPreset } from "../../ocr-models/presets.js";
+import { getOcrModelManager } from "../../ocr-models/manager.js";
 import { ortSessionOptions } from "../../utils/ort-options.js";
 
-const MODEL_URL = "https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx";
 const SIZE = 512;
 let sessionPromise = null;
 
-async function getSession() {
+async function getSession(preset) {
     if (!sessionPromise) {
-        sessionPromise = (async () => {
+        const promise = (async () => {
             // 경로 로드로 200MB 가중치를 mmap 처리해 메모리를 절약한다
-            const modelPath = await fetchAndCacheModelPath(MODEL_URL, "lama_fp32.onnx", "[MangoTL-Inpaint]");
-            return ort.InferenceSession.create(modelPath, ortSessionOptions(4));
-        })().catch((error) => {
-            sessionPromise = null;
-            throw error;
+            const modelPath = await fetchAndCacheModelPath(preset.files[0].url, preset.files[0].fileName, "[MangoTL-Inpaint]");
+            const session = await ort.InferenceSession.create(modelPath, ortSessionOptions(4));
+            getOcrModelManager().registerRuntime(preset.id, async () => {
+                if (sessionPromise === promise) sessionPromise = null;
+                if (typeof session.release === "function") await session.release();
+            });
+            return session;
+        })();
+        sessionPromise = promise;
+        promise.catch(() => {
+            if (sessionPromise === promise) sessionPromise = null;
         });
     }
     return sessionPromise;
@@ -157,18 +164,21 @@ export async function restoreDetailedTextRegions(canvas, blocks, sourceCanvas = 
     const candidates = blocks.map((block) => ({ block, candidate: candidateFor(block) })).filter((entry) => entry.candidate);
     if (candidates.length === 0) return new Set();
     const restored = new Set();
+    const preset = createLamaModelPreset();
     try {
-        await ImageProcessor.initRuntime();
-        const session = await getSession();
-        for (const { block, candidate } of candidates) {
-            try {
-                if (await restoreOne(sourceCanvas, ctx, block, candidate, session)) {
-                    restored.add(block.id);
+        await getOcrModelManager().runWithPreset(preset, async () => {
+            await ImageProcessor.initRuntime();
+            const session = await getSession(preset);
+            for (const { block, candidate } of candidates) {
+                try {
+                    if (await restoreOne(sourceCanvas, ctx, block, candidate, session)) {
+                        restored.add(block.id);
+                    }
+                } catch (error) {
+                    console.warn(`[MangoTL-Inpaint] Detailed restoration failed for ${block.id}: ${error.message}`);
                 }
-            } catch (error) {
-                console.warn(`[MangoTL-Inpaint] Detailed restoration failed for ${block.id}: ${error.message}`);
             }
-        }
+        });
     } catch (error) {
         console.warn(`[MangoTL-Inpaint] Model unavailable, using local repair: ${error.message}`);
     }

@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
 import { readFile } from "node:fs/promises";
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import {
     loadStaticServerConfig,
     loadUserSettings,
@@ -9,7 +8,12 @@ import {
     getPositiveInteger,
 } from "./src/config/load-server-config.js";
 import { buildPublicConfig } from "./src/config/public-config.js";
+import { assertProviderModelUpdateAllowed } from "./src/config/provider-settings.js";
+import { listLocalModelPresets } from "./src/local-models/presets.js";
 import { normalizeTranslateRequest } from "./src/http/normalize-translate-request.js";
+import { registerLocalModelRoutes } from "./src/http/local-model-routes.js";
+import { registerStorageRoutes } from "./src/http/storage-routes.js";
+import { accessKeyFrom, hashPassword, isSameOriginRequest, verifyPassword } from "./src/http/request-security.js";
 import { translateImage } from "./src/pipeline/translate-image.js";
 import { HttpError } from "./src/utils/http-error.js";
 import { clearImageResultCache } from "./src/utils/image-result-cache.js";
@@ -31,8 +35,9 @@ async function getRequestConfig() {
     return applyUserSettings(staticConfig, await loadUserSettings());
 }
 
-const app = new Elysia()
-    .onError(({ error, set }) => errorResponse(error, set))
+const app = new Elysia();
+
+app.onError(({ error, set }) => errorResponse(error, set))
     .onRequest(({ set }) => {
         set.headers["Access-Control-Allow-Origin"] = "*";
         set.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
@@ -64,6 +69,34 @@ const app = new Elysia()
             }),
     )
     .get(
+        "/config/storage.js",
+        async () =>
+            new Response(await readFile(new URL("./public/storage.js", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/javascript; charset=utf-8" },
+            }),
+    )
+    .get(
+        "/config/row-actions.js",
+        async () =>
+            new Response(await readFile(new URL("./public/row-actions.js", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/javascript; charset=utf-8" },
+            }),
+    )
+    .get(
+        "/config/local-models.js",
+        async () =>
+            new Response(await readFile(new URL("./public/local-models.js", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/javascript; charset=utf-8" },
+            }),
+    )
+    .get(
+        "/config/config-state.js",
+        async () =>
+            new Response(await readFile(new URL("./public/config-state.js", import.meta.url), "utf8"), {
+                headers: { "Content-Type": "text/javascript; charset=utf-8" },
+            }),
+    )
+    .get(
         "/config",
         async () =>
             new Response(await readFile(new URL("./public/config.html", import.meta.url), "utf8"), {
@@ -83,10 +116,26 @@ const app = new Elysia()
         }
 
         return {
-            providers: staticConfig.providers.map(({ id, name, apiKeyOptional }) => ({ id, name, apiKeyOptional: Boolean(apiKeyOptional) })),
+            providers: staticConfig.providers.map((provider) => ({
+                id: provider.id,
+                name: provider.name,
+                apiKeyOptional: Boolean(provider.apiKeyOptional),
+                baseUrl: provider.baseUrl || "",
+                models: listLocalModelPresets(provider).map((preset) => ({
+                    id: preset.id,
+                    name: preset.name,
+                    model: preset.model,
+                    profile: preset.profile,
+                    downloadBytes: preset.downloadBytes,
+                    sourceUrl: preset.sourceUrl,
+                    licenseUrl: preset.licenseUrl,
+                    supportedLanguages: preset.supportedLanguages,
+                })),
+            })),
             settings: {
                 provider: settings.provider || "",
                 model: settings.model || "",
+                baseUrl: settings.baseUrl || "",
                 // Never send the full key — only a masked preview so the user can tell which key is saved.
                 apiKeySet: Boolean(settings.apiKey),
                 apiKeyPreview: maskApiKey(settings.apiKey),
@@ -188,8 +237,15 @@ const app = new Elysia()
                 website: t.Optional(t.String()),
             }),
         },
-    )
-    .listen({ port, hostname });
+    );
+
+registerLocalModelRoutes(app, {
+    provider: staticConfig.providers.find((provider) => provider.id === "local-gguf"),
+    staticConfig,
+    loadSettings: loadUserSettings,
+});
+registerStorageRoutes(app, { loadSettings: loadUserSettings });
+app.listen({ port, hostname });
 
 console.log("[MangoTL] Server starting...");
 console.log(`[MangoTL] Listening on http://localhost:${app.server?.port || port}`);
@@ -224,57 +280,6 @@ function maskApiKey(apiKey) {
     return `${prefix}${keyPart.slice(0, 4)}${"•".repeat(keyPart.length - 4)}`;
 }
 
-// Passwords are hashed with scrypt + a per-password random salt (node:crypto,
-// no dependencies). Stored as "saltHex:hashHex". An empty stored value means the
-// password is not set, which is also the bootstrap state that lets the first
-// settings password be configured without authentication.
-function hashPassword(password) {
-    const salt = randomBytes(16);
-    const hash = scryptSync(password, salt, 32);
-    return `${salt.toString("hex")}:${hash.toString("hex")}`;
-}
-
-function verifyPassword(password, stored) {
-    if (!password || typeof stored !== "string" || !stored) {
-        return false;
-    }
-
-    const [saltHex, hashHex] = stored.split(":");
-    if (!saltHex || !hashHex) {
-        return false;
-    }
-
-    try {
-        const hash = scryptSync(password, Buffer.from(saltHex, "hex"), 32);
-        // ponytail: scryptSync per gated request (~tens of ms); translation itself
-        // takes seconds so this is noise. Move to a cached verify if a high-QPS
-        // public translate endpoint ever needs it.
-        return timingSafeEqual(hash, Buffer.from(hashHex, "hex"));
-    } catch {
-        return false;
-    }
-}
-
-function accessKeyFrom(request) {
-    return request.headers.get("x-access-key") || "";
-}
-
-// Only same-origin requests (the settings page itself) may change settings,
-// so a random website cannot read/overwrite the API key via CORS.
-function isSameOriginRequest(request) {
-    const origin = request.headers.get("origin");
-
-    if (!origin) {
-        return true;
-    }
-
-    try {
-        return new URL(origin).host === request.headers.get("host");
-    } catch {
-        return false;
-    }
-}
-
 function applySettingsUpdate(current, update, staticConfig) {
     const updated = { ...current };
 
@@ -300,6 +305,24 @@ function applySettingsUpdate(current, update, staticConfig) {
         }
 
         updated.model = model;
+    }
+
+    assertProviderModelUpdateAllowed(staticConfig, current, update, updated);
+
+    if ("baseUrl" in update) {
+        const baseUrl = String(update.baseUrl ?? "")
+            .trim()
+            .replace(/\/+$/, "");
+        let parsed;
+        try {
+            parsed = new URL(baseUrl);
+        } catch {
+            throw new HttpError(400, "invalid_base_url", "Base URL must be a valid HTTP or HTTPS URL.");
+        }
+        if (!["http:", "https:"].includes(parsed.protocol) || !parsed.host || parsed.username || parsed.password) {
+            throw new HttpError(400, "invalid_base_url", "Base URL must be an HTTP or HTTPS URL without credentials.");
+        }
+        updated.baseUrl = baseUrl;
     }
 
     // An empty/omitted apiKey keeps the current key, so the page never needs to round-trip it.

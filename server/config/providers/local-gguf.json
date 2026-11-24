@@ -1,0 +1,42 @@
+{
+    "id": "local-gguf",
+    "kind": "provider",
+    "name": "Local GGUF (llama.cpp)",
+    "type": "local-gguf",
+    "settings": {
+        "apiKeyOptional": true,
+        "defaultApiKey": "local",
+        "models": [
+            {
+                "id": "plamo-3-translate-0.8b",
+                "name": "PLaMo 3 Translate 0.8B Q4_K_M",
+                "model": "pfnet/plamo-3-translate-0.8b-GGUF:Q4_K_M",
+                "profile": "plamo-3-translate",
+                "downloadBytes": 573000000,
+                "sourceUrl": "https://huggingface.co/pfnet/plamo-3-translate-0.8b-GGUF",
+                "licenseUrl": "https://plamo.preferredai.jp/info/plamo-community-license-en",
+                "supportedLanguages": ["ja", "ko", "en", "zh", "de"]
+            },
+            {
+                "id": "plamo-3-translate-2b",
+                "name": "PLaMo 3 Translate 2B Q4_K_M",
+                "model": "pfnet/plamo-3-translate-2b-GGUF:Q4_K_M",
+                "profile": "plamo-3-translate",
+                "downloadBytes": 1810000000,
+                "sourceUrl": "https://huggingface.co/pfnet/plamo-3-translate-2b-GGUF",
+                "licenseUrl": "https://plamo.preferredai.jp/info/plamo-community-license-en",
+                "supportedLanguages": ["ja", "ko", "en", "zh", "de"]
+            },
+            {
+                "id": "hy-mt2-1.8b",
+                "name": "Hy-MT2 1.8B Q4_K_M",
+                "model": "tencent/Hy-MT2-1.8B-GGUF:Q4_K_M",
+                "profile": "hy-mt-2",
+                "downloadBytes": 1130000000,
+                "sourceUrl": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF",
+                "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+                "supportedLanguages": ["ja", "ko", "en", "zh", "de"]
+            }
+        ]
+    }
+}

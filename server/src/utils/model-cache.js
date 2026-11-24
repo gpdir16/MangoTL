@@ -1,10 +1,27 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const cacheRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.ocr-cache");
 const inFlight = new Map();
+
+export function modelCacheFileName(prefix, url) {
+    return sanitizeFileName(`${prefix}-${modelUrlHash(url)}-${modelUrlBasename(url)}`);
+}
+
+export function modelUrlHash(url) {
+    return createHash("sha256").update(url).digest("hex").slice(0, 12);
+}
+
+function modelUrlBasename(url) {
+    try {
+        return new URL(url).pathname.split("/").pop() || "model";
+    } catch {
+        return "model";
+    }
+}
 
 /**
  * 모델 리소스를 다운로드해 server/.ocr-cache에 캐시한다.

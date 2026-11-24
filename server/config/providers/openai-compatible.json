@@ -1,0 +1,14 @@
+{
+    "id": "openai-compatible",
+    "kind": "provider",
+    "name": "OpenAI-compatible endpoint",
+    "type": "openai-compatible",
+    "settings": {
+        "baseUrl": "http://localhost:8000/v1",
+        "apiKeyOptional": true,
+        "defaultApiKey": "none",
+        "responseFormat": {
+            "type": "json_object"
+        }
+    }
+}

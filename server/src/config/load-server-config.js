@@ -88,6 +88,7 @@ export function applyUserSettings(staticConfig, settings) {
         defaultProvider: settings.provider || null,
         defaultModel: settings.model || null,
         apiKey: settings.apiKey || null,
+        baseUrl: settings.baseUrl || null,
         security: {
             settingsPasswordHash: security.settingsPasswordHash || "",
             translatePasswordHash: security.translatePasswordHash || "",

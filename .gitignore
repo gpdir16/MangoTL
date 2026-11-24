@@ -5,4 +5,5 @@ test-images/
 server/out/
 server/.ocr-cache/
 server/.image-cache/
+server/.llama-cache/
 server/secrets/

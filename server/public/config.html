@@ -122,6 +122,18 @@
                 gap: 16px;
             }
 
+            #panel-storage.panel.active {
+                gap: 24px;
+            }
+
+            #panel-storage .models-heading {
+                justify-content: space-between;
+            }
+
+            #panel-storage .models-heading > button {
+                flex-shrink: 0;
+            }
+
             .panel h2 {
                 margin: 0;
                 font-size: 20px;
@@ -222,6 +234,101 @@
                 color: #81c784;
             }
 
+            #panel-storage table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            #panel-storage th,
+            #panel-storage td {
+                padding: 10px 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-align: left;
+                vertical-align: middle;
+                overflow-wrap: anywhere;
+            }
+
+            #panel-storage th {
+                color: rgb(160, 160, 160);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            #panel-storage th:first-child,
+            #panel-storage td:first-child {
+                width: 40%;
+                padding-left: 0;
+            }
+
+            #panel-storage th:nth-child(2),
+            #panel-storage td:nth-child(2) {
+                width: 25%;
+            }
+
+            #panel-storage th:nth-child(3),
+            #panel-storage td:nth-child(3) {
+                width: 12%;
+                white-space: nowrap;
+            }
+
+            #panel-storage th:last-child,
+            #panel-storage td:last-child {
+                width: 23%;
+                padding-right: 0;
+                text-align: right;
+            }
+
+            #panel-storage td .field-row {
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            #panel-storage td a {
+                color: #64b5f6;
+                text-decoration: none;
+            }
+
+            #panel-storage td a:hover {
+                text-decoration: underline;
+            }
+
+            #panel-storage .row-actions {
+                position: relative;
+                display: inline-block;
+            }
+
+            #panel-storage .row-action-toggle {
+                min-width: 40px;
+            }
+
+            #panel-storage .row-action-menu {
+                position: absolute;
+                top: calc(100% + 4px);
+                right: 0;
+                z-index: 10;
+                display: grid;
+                gap: 4px;
+                min-width: 160px;
+                padding: 4px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                background: rgb(20, 20, 20);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            }
+
+            #panel-storage .row-action-menu button {
+                width: 100%;
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            #panel-storage progress {
+                width: 100%;
+                margin-top: 6px;
+                accent-color: dodgerblue;
+            }
+
             @media (max-width: 640px) {
                 .layout {
                     display: flex;
@@ -266,8 +373,60 @@
                     gap: 12px;
                 }
 
+                #panel-storage.panel.active {
+                    gap: 20px;
+                }
+
                 .field-row {
                     gap: 6px;
+                }
+
+                #panel-storage table,
+                #panel-storage tbody {
+                    display: block;
+                }
+
+                #panel-storage thead {
+                    display: none;
+                }
+
+                #panel-storage tr {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) auto;
+                    gap: 5px 12px;
+                    padding: 12px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                #panel-storage td,
+                #panel-storage td:first-child,
+                #panel-storage td:nth-child(2),
+                #panel-storage td:nth-child(3),
+                #panel-storage td:last-child {
+                    width: auto;
+                    padding: 0;
+                    border: 0;
+                }
+
+                #panel-storage td:first-child,
+                #panel-storage td:nth-child(2) {
+                    grid-column: 1;
+                }
+
+                #panel-storage td:first-child,
+                #panel-storage td:nth-child(3) {
+                    grid-row: 1;
+                }
+
+                #panel-storage td:nth-child(2),
+                #panel-storage td:last-child {
+                    grid-row: 2;
+                }
+
+                #panel-storage td:nth-child(3),
+                #panel-storage td:last-child {
+                    grid-column: 2;
+                    text-align: right;
                 }
             }
         </style>
@@ -294,6 +453,7 @@
         <div class="layout" id="main-layout">
             <nav class="sidebar" aria-label="Settings tabs">
                 <button type="button" class="tab active" data-tab="inference" data-i18n="tabInference">AI Inference</button>
+                <button type="button" class="tab" data-tab="storage" data-i18n="storage">Storage</button>
                 <button type="button" class="tab" data-tab="advanced" data-i18n="tabAdvanced">Advanced</button>
                 <button type="button" class="tab" data-tab="security" data-i18n="tabSecurity">Security</button>
                 <button type="button" id="help-btn" class="tab" data-i18n="help">Open README Help</button>
@@ -313,15 +473,26 @@
                         <p id="provider-hint" class="hint"></p>
                     </div>
 
+                    <div class="field" id="base-url-field" hidden>
+                        <label data-i18n="labelBaseUrl">Base URL</label>
+                        <div class="field-row">
+                            <input id="baseUrl" type="url" inputmode="url" required />
+                            <button type="button" class="field-save" data-save="baseUrl" hidden data-i18n="save">Save</button>
+                        </div>
+                        <p id="base-url-hint" class="hint"></p>
+                    </div>
+
                     <div class="field">
                         <label data-i18n="labelModel">Model</label>
                         <div class="field-row">
                             <input id="model" type="text" required />
+                            <select id="model-preset" hidden></select>
                             <button type="button" class="field-save" data-save="model" hidden data-i18n="save">Save</button>
                         </div>
+                        <p id="model-hint" class="hint"></p>
                     </div>
 
-                    <div class="field">
+                    <div class="field" id="api-key-field">
                         <label data-i18n="labelApiKey">API key</label>
                         <div id="key-preview-wrap" class="field-row">
                             <span id="key-preview" class="key-preview"></span>
@@ -334,6 +505,47 @@
                         </div>
                         <p id="api-key-hint" class="hint"></p>
                     </div>
+                </section>
+
+                <section id="panel-storage" class="panel">
+                    <h2 data-i18n="storage">Storage</h2>
+                    <p class="desc" data-i18n="storageDesc">Review disk usage and manage cached data and models.</p>
+                    <p id="storage-error" class="hint error" hidden></p>
+
+                    <div class="field">
+                        <label data-i18n="storageAppData">App data</label>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col" data-i18n="storageItem">Item</th>
+                                    <th scope="col" data-i18n="storageFiles">Files</th>
+                                    <th scope="col" data-i18n="storageSize">Size</th>
+                                    <th scope="col" data-i18n="storageActions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="storage-list"></tbody>
+                        </table>
+                    </div>
+
+                    <section class="field" aria-labelledby="local-models-title">
+                        <div class="field-row models-heading">
+                            <label id="local-models-title" data-i18n="localModels">Models</label>
+                            <button type="button" id="toggle-not-installed" class="secondary-btn" aria-pressed="false">Show not installed</button>
+                        </div>
+                        <p class="hint" data-i18n="localModelsDesc">Manage downloads and memory for OCR, inpainting, and translation models.</p>
+                        <p id="local-models-error" class="hint error" hidden></p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col" data-i18n="labelModel">Model</th>
+                                    <th scope="col" data-i18n="localModelStatus">Status</th>
+                                    <th scope="col" data-i18n="storageSize">Size</th>
+                                    <th scope="col" data-i18n="storageActions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="local-model-list"></tbody>
+                        </table>
+                    </section>
                 </section>
 
                 <section id="panel-advanced" class="panel">
@@ -436,7 +648,11 @@
             </main>
         </div>
 
-        <script>
+        <script type="module">
+            import { createSettingsSavePayload, resolveModelControl } from "/config/config-state.js";
+            import { createLocalModelView } from "/config/local-models.js";
+            import { createStorageView } from "/config/storage.js";
+
             const I18N = {
                 en: {
                     pageTitle: "MangoTL Server Settings",
@@ -453,6 +669,51 @@
                     labelPort: "Server port",
                     hintPort: "Changes apply after a server restart.",
                     hintProviderLocal: "Runs locally — no API key required.",
+                    hintProviderLocalGguf: "Runs llama.cpp locally on CPU. No API key required.",
+                    labelBaseUrl: "Base URL",
+                    hintBaseUrl: "Enter the server's /v1 endpoint. Example: http://localhost:8000/v1",
+                    hintModelLocalGguf: "Choose a verified preset. The first translation downloads it from Hugging Face if needed.",
+                    localModels: "Models",
+                    storage: "Storage",
+                    storageDesc: "Review disk usage and manage cached data and models.",
+                    storageAppData: "App data",
+                    storageItem: "Item",
+                    storageFiles: "Files",
+                    storageFileCount: "{count} files",
+                    storageSize: "Size",
+                    storageActions: "Actions",
+                    rowActions: "Actions",
+                    showNotInstalled: "Show not installed",
+                    hideNotInstalled: "Hide not installed",
+                    storageImageCache: "Translation result cache",
+                    storageSettings: "Settings storage",
+                    storageLoadError: "Could not read storage usage.",
+                    storageClearError: "Failed to clear cache: ",
+                    storageCleared: "Cache cleared.",
+                    clearCache: "Clear cache",
+                    clearCacheConfirm: "Clear all files in {name}? Downloaded files can be fetched again when needed.",
+                    localModelsDesc: "Manage downloads and memory for OCR, inpainting, and translation models.",
+                    localModelsLoadError: "Could not load local model status.",
+                    localModelActionError: "Local model action failed: ",
+                    localModelSelected: "Selected",
+                    localModelActive: "Translating",
+                    localModelStatus: "Status",
+                    localModelSource: "Model source",
+                    localModelProgressUnknown: "Downloading…",
+                    localModelActionDownload: "Download",
+                    localModelActionResume: "Resume",
+                    localModelActionCancel: "Cancel download",
+                    localModelActionUnload: "Unload",
+                    localModelActionDelete: "Delete",
+                    localModelDeleteConfirm: "Delete the downloaded files for {model}? This cannot be undone.",
+                    localModelStatus_not_downloaded: "Not installed",
+                    localModelStatus_downloading: "Downloading",
+                    localModelStatus_incomplete: "Paused",
+                    localModelStatus_loading: "Loading",
+                    localModelStatus_loaded: "Loaded",
+                    localModelStatus_sleeping: "Sleeping",
+                    localModelStatus_unloaded: "Installed",
+                    localModelStatus_failed: "Failed",
                     hintApiKeySet: "A key is saved. Enter a new one to replace it.",
                     hintApiKeyNotSet: "Enter the API key for this provider.",
                     placeholderKeySet: "New key (leave blank to keep the saved key)",
@@ -502,6 +763,51 @@
                     labelPort: "서버 포트",
                     hintPort: "변경은 서버 재시작 후 적용됩니다.",
                     hintProviderLocal: "로컬 실행 제공자 — API 키가 필요 없습니다.",
+                    hintProviderLocalGguf: "llama.cpp를 로컬 CPU로 실행합니다. API 키가 필요 없습니다.",
+                    labelBaseUrl: "Base URL",
+                    hintBaseUrl: "서버의 /v1 엔드포인트를 입력하세요. 예: http://localhost:8000/v1",
+                    hintModelLocalGguf: "검증된 프리셋을 선택하세요. 필요하면 첫 번역 시 Hugging Face에서 자동으로 다운로드합니다.",
+                    localModels: "모델",
+                    storage: "저장공간",
+                    storageDesc: "디스크 사용량을 확인하고 캐시와 모델을 관리합니다.",
+                    storageAppData: "앱 데이터",
+                    storageItem: "항목",
+                    storageFiles: "파일",
+                    storageFileCount: "{count}개",
+                    storageSize: "크기",
+                    storageActions: "작업",
+                    rowActions: "작업",
+                    showNotInstalled: "설치되지 않은 항목 보기",
+                    hideNotInstalled: "설치되지 않은 항목 숨기기",
+                    storageImageCache: "번역 결과 캐시",
+                    storageSettings: "설정 저장소",
+                    storageLoadError: "저장공간 사용량을 읽지 못했습니다.",
+                    storageClearError: "캐시 삭제에 실패했습니다: ",
+                    storageCleared: "캐시를 삭제했습니다.",
+                    clearCache: "캐시 삭제",
+                    clearCacheConfirm: "{name}의 파일을 모두 삭제할까요? 필요한 파일은 다시 다운로드할 수 있습니다.",
+                    localModelsDesc: "OCR, 인페인팅, 번역 모델의 다운로드와 메모리를 관리합니다.",
+                    localModelsLoadError: "로컬 모델 상태를 불러오지 못했습니다.",
+                    localModelActionError: "로컬 모델 작업에 실패했습니다: ",
+                    localModelSelected: "선택됨",
+                    localModelActive: "번역 중",
+                    localModelStatus: "상태",
+                    localModelSource: "모델 소스",
+                    localModelProgressUnknown: "다운로드 중…",
+                    localModelActionDownload: "다운로드",
+                    localModelActionResume: "재개",
+                    localModelActionCancel: "다운로드 취소",
+                    localModelActionUnload: "메모리에서 해제",
+                    localModelActionDelete: "삭제",
+                    localModelDeleteConfirm: "{model}의 다운로드 파일을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
+                    localModelStatus_not_downloaded: "미설치",
+                    localModelStatus_downloading: "다운로드 중",
+                    localModelStatus_incomplete: "중단됨",
+                    localModelStatus_loading: "로드 중",
+                    localModelStatus_loaded: "로드됨",
+                    localModelStatus_sleeping: "휴지",
+                    localModelStatus_unloaded: "설치됨",
+                    localModelStatus_failed: "오류",
                     hintApiKeySet: "이미 저장된 키가 있습니다. 새 키를 입력하면 교체됩니다.",
                     hintApiKeyNotSet: "이 제공자의 API 키를 입력하세요.",
                     placeholderKeySet: "새 키 (비워두면 저장된 키 유지)",
@@ -545,6 +851,7 @@
             let apiKeyPreview = "";
             let keyInputOpen = false;
             let original = null;
+            let providerDefinitions = [];
             let accessKey = sessionStorage.getItem("mangotlAccessKey") || "";
             let settingsPasswordSet = false;
             let translatePasswordSet = false;
@@ -566,6 +873,28 @@
             function t(key) {
                 return I18N[lang][key];
             }
+
+            const localModelView = createLocalModelView({
+                t,
+                getAccessKey: () => accessKey,
+                getSelectedPresetId: () => (document.getElementById("provider").value === "local-gguf" ? activeModelValue() : ""),
+                onUnauthorized: () => {
+                    accessKey = "";
+                    sessionStorage.removeItem("mangotlAccessKey");
+                    showLock(t("lockSessionExpired"));
+                },
+                showMessage,
+            });
+            const storageView = createStorageView({
+                t,
+                getAccessKey: () => accessKey,
+                onUnauthorized: () => {
+                    accessKey = "";
+                    sessionStorage.removeItem("mangotlAccessKey");
+                    showLock(t("lockSessionExpired"));
+                },
+                showMessage,
+            });
 
             function numOr(raw, fallback) {
                 const parsed = Number(raw);
@@ -591,13 +920,49 @@
                 return `${prefix}${keyPart.slice(0, 4)}${"•".repeat(keyPart.length - 4)}`;
             }
 
+            function activeModelValue() {
+                const providerId = document.getElementById("provider").value;
+                return providerId === "local-gguf" ? document.getElementById("model-preset").value : document.getElementById("model").value.trim();
+            }
+
+            function updateModelControl(savedModel) {
+                const providerId = document.getElementById("provider").value;
+                const currentModel = savedModel ?? activeModelValue();
+                const state = resolveModelControl({ providerId, providers: providerDefinitions, currentModel });
+                const input = document.getElementById("model");
+                const select = document.getElementById("model-preset");
+
+                input.hidden = state.local;
+                select.hidden = !state.local;
+                input.required = !state.local;
+                select.required = state.local;
+
+                if (state.local) {
+                    const signature = state.presets.map((preset) => preset.id).join("\n");
+                    if (select.dataset.signature !== signature) {
+                        select.textContent = "";
+                        for (const preset of state.presets) {
+                            const option = document.createElement("option");
+                            option.value = preset.id;
+                            option.textContent = preset.name;
+                            select.append(option);
+                        }
+                        select.dataset.signature = signature;
+                    }
+                    select.value = state.model;
+                } else if (savedModel !== undefined) {
+                    input.value = savedModel;
+                }
+            }
+
             // Normalized form state: empty number fields fall back to the saved value,
             // so clearing them counts as "no change".
             function formSnapshot() {
                 const saved = original || {};
                 return {
                     provider: document.getElementById("provider").value,
-                    model: document.getElementById("model").value.trim(),
+                    model: activeModelValue(),
+                    baseUrl: document.getElementById("baseUrl").value.trim() || saved.baseUrl || "",
                     maxImageBytes: numOr(document.getElementById("maxImageBytes").value, saved.maxImageBytes ?? ""),
                     port: numOr(document.getElementById("port").value, saved.port ?? ""),
                     host: document.getElementById("host").value.trim() || saved.host || "",
@@ -606,7 +971,7 @@
 
             function updateFieldButtons() {
                 const snapshot = formSnapshot();
-                for (const key of ["provider", "model", "maxImageBytes", "port", "host"]) {
+                for (const key of ["provider", "model", "baseUrl", "maxImageBytes", "port", "host"]) {
                     const button = document.querySelector(`[data-save="${key}"]`);
                     button.hidden = snapshot[key] === (original || {})[key];
                 }
@@ -625,7 +990,21 @@
             function refreshDynamicTexts() {
                 const provider = document.getElementById("provider");
                 const keyOptional = provider.selectedOptions[0]?.dataset.keyOptional === "true";
-                document.getElementById("provider-hint").textContent = keyOptional ? t("hintProviderLocal") : "";
+                const localGguf = provider.value === "local-gguf";
+                const customEndpoint = provider.value === "openai-compatible";
+                if (customEndpoint && !document.getElementById("baseUrl").value) {
+                    document.getElementById("baseUrl").value = provider.selectedOptions[0]?.dataset.baseUrl || "";
+                }
+                document.getElementById("base-url-field").hidden = !customEndpoint;
+                document.getElementById("baseUrl").required = customEndpoint;
+                document.getElementById("base-url-hint").textContent = customEndpoint ? t("hintBaseUrl") : "";
+                document.getElementById("api-key-field").hidden = localGguf;
+                document.getElementById("provider-hint").textContent = localGguf
+                    ? t("hintProviderLocalGguf")
+                    : keyOptional
+                      ? t("hintProviderLocal")
+                      : "";
+                document.getElementById("model-hint").textContent = localGguf ? t("hintModelLocalGguf") : "";
 
                 keyPreviewEl.textContent = apiKeyPreview;
                 keyPreviewWrap.hidden = keyInputOpen;
@@ -644,6 +1023,8 @@
 
                 const bytes = Number(document.getElementById("maxImageBytes").value);
                 document.getElementById("max-hint").textContent = bytes > 0 ? t("mbHint").replace("{mb}", (bytes / (1024 * 1024)).toFixed(1)) : "";
+                localModelView.render();
+                storageView.render();
             }
 
             let messageTimer = null;
@@ -677,6 +1058,7 @@
 
                 const data = await response.json();
 
+                providerDefinitions = data.providers;
                 const providers = document.getElementById("provider");
                 providers.textContent = "";
                 for (const p of data.providers) {
@@ -684,11 +1066,13 @@
                     option.value = p.id;
                     option.textContent = p.name;
                     option.dataset.keyOptional = String(p.apiKeyOptional);
+                    option.dataset.baseUrl = p.baseUrl || "";
                     providers.append(option);
                 }
                 providers.value = data.settings.provider;
-
-                document.getElementById("model").value = data.settings.model;
+                updateModelControl(data.settings.model);
+                document.getElementById("baseUrl").value =
+                    data.settings.baseUrl || data.providers.find((provider) => provider.id === data.settings.provider)?.baseUrl || "";
                 document.getElementById("model").placeholder = t("placeholderModel");
                 document.getElementById("maxImageBytes").value = data.settings.maxImageBytes || "";
                 document.getElementById("port").value = data.settings.port;
@@ -703,9 +1087,11 @@
 
                 hideLock();
                 original = formSnapshot();
+                original.model = data.settings.model;
                 refreshDynamicTexts();
                 updateFieldButtons();
                 renderSecurityStates();
+                await Promise.all([localModelView.load(), storageView.load()]);
             }
 
             async function saveField(key) {
@@ -716,7 +1102,7 @@
                 if (key === "apiKey") {
                     payload.apiKey = keyInput.value.trim();
                 } else {
-                    payload[key] = snapshot[key];
+                    Object.assign(payload, createSettingsSavePayload(key, snapshot));
                 }
 
                 const button = document.querySelector(`[data-save="${key}"]`);
@@ -762,8 +1148,8 @@
                 showMessage(restartNeeded ? t("saveSuccessRestart") : t("saveSuccess"), "success");
             }
 
-            const HASH_BY_TAB = { inference: "ai", advanced: "advanced", security: "security" };
-            const TAB_BY_HASH = { ai: "inference", advanced: "advanced", security: "security" };
+            const HASH_BY_TAB = { inference: "ai", storage: "storage", advanced: "advanced", security: "security" };
+            const TAB_BY_HASH = { ai: "inference", storage: "storage", advanced: "advanced", security: "security" };
 
             function activateTab(tabId) {
                 document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item.dataset.tab === tabId));
@@ -797,8 +1183,13 @@
                     window.open(`https://github.com/gpdir16/MangoTL/blob/main/${lang === "ko" ? "README_ko.md" : "README.md"}`, "_blank", "noopener"),
                 );
 
-            document.getElementById("provider").addEventListener("change", updateFieldButtons);
-            for (const id of ["model", "apiKey", "maxImageBytes", "port", "host"]) {
+            document.getElementById("provider").addEventListener("change", () => {
+                updateModelControl();
+                refreshDynamicTexts();
+                updateFieldButtons();
+            });
+            document.getElementById("model-preset").addEventListener("change", updateFieldButtons);
+            for (const id of ["model", "baseUrl", "apiKey", "maxImageBytes", "port", "host"]) {
                 document.getElementById(id).addEventListener("input", updateFieldButtons);
             }
 
@@ -819,6 +1210,7 @@
             });
 
             function showLock(message) {
+                localModelView.stopPolling();
                 mainLayout.hidden = true;
                 lockScreen.hidden = false;
                 lockMessage.textContent = message || "";

@@ -1,7 +1,8 @@
 import * as ort from "onnxruntime-node";
-import { createHash } from "node:crypto";
 import { DetectionService } from "@snowfluke/ppu-paddle-ocr";
-import { fetchAndCacheModelPath } from "../utils/model-cache.js";
+import { fetchAndCacheModelPath, modelCacheFileName } from "../utils/model-cache.js";
+import { createDetectionModelPreset } from "../ocr-models/presets.js";
+import { getOcrModelManager } from "../ocr-models/manager.js";
 import { ortSessionOptions } from "../utils/ort-options.js";
 import { HttpError } from "../utils/http-error.js";
 
@@ -14,16 +15,19 @@ const detectorPromises = new Map();
  * Returns an array of { x, y, width, height } boxes in source-image coordinates.
  */
 export async function detectWithPaddle(canvas, detectionEngineConfig) {
-    const detector = await getDetector(detectionEngineConfig);
+    const preset = createDetectionModelPreset(detectionEngineConfig, detectionEngineConfig.model);
+    return getOcrModelManager().runWithPreset(preset, async () => {
+        const detector = await getDetector(detectionEngineConfig, preset.id);
 
-    const start = Date.now();
-    const boxes = normalizeBoxes(await detector.run(canvas));
-    console.log(`${LOG} Detected ${boxes.length} text regions in ${Date.now() - start}ms`);
+        const start = Date.now();
+        const boxes = normalizeBoxes(await detector.run(canvas));
+        console.log(`${LOG} Detected ${boxes.length} text regions in ${Date.now() - start}ms`);
 
-    return boxes;
+        return boxes;
+    });
 }
 
-async function getDetector(config) {
+async function getDetector(config, presetId) {
     const cacheKey = getDetectorCacheKey(config);
     const cached = detectorPromises.get(cacheKey);
 
@@ -39,17 +43,18 @@ async function getDetector(config) {
 
         console.log(`${LOG} Initializing PaddleOCR detection...`);
         // 경로로 생성해야 가중치가 mmap로 올라가 세션 메모리가 크게 줄어든다
-        const modelPath = await fetchAndCacheModelPath(
-            modelUrl,
-            `paddle-det-${createHash("sha256").update(modelUrl).digest("hex").slice(0, 12)}-${basename(modelUrl)}`,
-            LOG,
-        );
+        const modelPath = await fetchAndCacheModelPath(modelUrl, modelCacheFileName("paddle-det", modelUrl), LOG);
 
         const session = await ort.InferenceSession.create(modelPath, ortSessionOptions());
         console.log(`${LOG} Detection session ready (input: ${session.inputNames}, output: ${session.outputNames})`);
 
         const engine = config.processing?.engine || "canvas-native";
-        return new ManagedDetectionService(session, config.options || {}, config.debugging || {}, engine);
+        const detector = new ManagedDetectionService(session, config.options || {}, config.debugging || {}, engine);
+        getOcrModelManager().registerRuntime(presetId, async () => {
+            if (detectorPromises.get(cacheKey) === detectorPromise) detectorPromises.delete(cacheKey);
+            if (typeof session.release === "function") await session.release();
+        });
+        return detector;
     })();
 
     detectorPromises.set(cacheKey, detectorPromise);
@@ -95,12 +100,4 @@ function normalizeBoxes(boxes) {
         }))
         .filter((box) => [box.x, box.y, box.width, box.height].every(Number.isFinite))
         .filter((box) => box.width > 0 && box.height > 0);
-}
-
-function basename(url) {
-    try {
-        return new URL(url).pathname.split("/").pop() || "model";
-    } catch {
-        return "model";
-    }
 }

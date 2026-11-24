@@ -9,6 +9,7 @@ export { isUntranslatedText } from "./shared.js";
  */
 const PROVIDERS = {
     "openai-compatible": async () => (await import("./openai-compatible.js")).translateWithOpenAICompatible,
+    "local-gguf": async () => (await import("./local-gguf/index.js")).translateWithLocalGguf,
 };
 
 /**

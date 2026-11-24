@@ -1,16 +1,20 @@
 services:
     mangotl:
         build: .
-        image: mangotl
-        container_name: mangotl
+        environment:
+            LOCAL_GGUF_MODE: native
+            LOCAL_GGUF_BINARY: /app/llama-server
+            LOCAL_GGUF_CACHE: /app/server/.llama-cache
+            LOCAL_GGUF_GPU_LAYERS: "0"
+            LOCAL_GGUF_PARALLEL: ${LOCAL_GGUF_PARALLEL:-2}
         ports:
             - "8787:8787"
         volumes:
             - mangotl-secrets:/app/server/secrets
             - mangotl-ocr-cache:/app/server/.ocr-cache
+            - mangotl-llama-cache:/app/server/.llama-cache
 
 volumes:
     mangotl-secrets:
-        external: true
     mangotl-ocr-cache:
-        external: true
+    mangotl-llama-cache:

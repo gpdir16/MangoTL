@@ -15,6 +15,10 @@ export function resolveProvider(config) {
         throw new HttpError(400, "provider_not_found", `AI provider not found: ${id || "(none)"}`);
     }
 
+    if (id === "openai-compatible" && config.baseUrl) {
+        return { ...provider, baseUrl: config.baseUrl };
+    }
+
     return provider;
 }
 

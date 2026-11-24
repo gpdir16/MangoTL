@@ -1,8 +1,9 @@
 import * as ort from "onnxruntime-node";
-import { createHash } from "node:crypto";
 import { RecognitionService } from "@snowfluke/ppu-paddle-ocr";
 import { createCanvas } from "ppu-ocv/canvas";
-import { fetchAndCacheModel, fetchAndCacheModelPath } from "../../utils/model-cache.js";
+import { fetchAndCacheModel, fetchAndCacheModelPath, modelCacheFileName } from "../../utils/model-cache.js";
+import { createRecognitionModelPreset } from "../../ocr-models/presets.js";
+import { getOcrModelManager } from "../../ocr-models/manager.js";
 import { ortSessionOptions } from "../../utils/ort-options.js";
 import { HttpError } from "../../utils/http-error.js";
 import { recognizeJapaneseLayout } from "./paddle-layout.js";
@@ -17,24 +18,27 @@ const recognizerPromises = new Map();
  * Returns the raw recognition items: [{ text, box, confidence }].
  */
 export async function recognizeWithPaddle(detection, ocrEngineConfig) {
-    const { recognizer, dictionary } = await getRecognizer(ocrEngineConfig);
-    const strategy = ocrEngineConfig.strategy || "per-box";
+    const preset = createRecognitionModelPreset(ocrEngineConfig, ocrEngineConfig.model);
+    return getOcrModelManager().runWithPreset(preset, async () => {
+        const { recognizer, dictionary } = await getRecognizer(ocrEngineConfig, preset.id);
+        const strategy = ocrEngineConfig.strategy || "per-box";
 
-    const start = Date.now();
-    let results;
-    if (ocrEngineConfig.model?.layout === "japanese") {
-        results = await recognizeJapaneseLayout(recognizer, detection, dictionary);
-    } else if (strategy === "per-box") {
-        results = recognizer.sortResultsByReadingOrder(await recognizeJapaneseLayout(recognizer, detection, dictionary, { vertical: false }));
-    } else {
-        results = await recognizer.run(detection.canvas, detection.boxes, dictionary, strategy);
-    }
-    console.log(`${LOG} Recognized ${results.length} boxes in ${Date.now() - start}ms (strategy: ${strategy})`);
+        const start = Date.now();
+        let results;
+        if (ocrEngineConfig.model?.layout === "japanese") {
+            results = await recognizeJapaneseLayout(recognizer, detection, dictionary);
+        } else if (strategy === "per-box") {
+            results = recognizer.sortResultsByReadingOrder(await recognizeJapaneseLayout(recognizer, detection, dictionary, { vertical: false }));
+        } else {
+            results = await recognizer.run(detection.canvas, detection.boxes, dictionary, strategy);
+        }
+        console.log(`${LOG} Recognized ${results.length} boxes in ${Date.now() - start}ms (strategy: ${strategy})`);
 
-    return results;
+        return results;
+    });
 }
 
-async function getRecognizer(config) {
+async function getRecognizer(config, presetId) {
     const model = config.model || {};
     const cacheKey = getRecognizerCacheKey(config);
 
@@ -56,8 +60,8 @@ async function getRecognizer(config) {
 
         // 인식 세션은 경로로 생성해 가중치를 mmap로 올린다(사전은 텍스트라 버퍼 유지)
         const [recognitionPath, dictionaryBuffer] = await Promise.all([
-            fetchAndCacheModelPath(recognitionUrl, `paddle-rec-${language}-${urlHash(recognitionUrl)}-${basename(recognitionUrl)}`, LOG),
-            fetchAndCacheModel(dictionaryUrl, `paddle-dict-${language}-${urlHash(dictionaryUrl)}-${basename(dictionaryUrl)}`, LOG),
+            fetchAndCacheModelPath(recognitionUrl, modelCacheFileName(`paddle-rec-${language}`, recognitionUrl), LOG),
+            fetchAndCacheModel(dictionaryUrl, modelCacheFileName(`paddle-dict-${language}`, dictionaryUrl), LOG),
         ]);
 
         const session = await ort.InferenceSession.create(recognitionPath, ortSessionOptions());
@@ -71,6 +75,11 @@ async function getRecognizer(config) {
             config.debugging || {},
             engine,
         );
+
+        getOcrModelManager().registerRuntime(presetId, async () => {
+            if (recognizerPromises.get(cacheKey) === promise) recognizerPromises.delete(cacheKey);
+            if (typeof session.release === "function") await session.release();
+        });
 
         return { recognizer, dictionary };
     })();
@@ -134,17 +143,5 @@ class ManagedRecognitionService extends RecognitionService {
             input.dispose();
             for (const tensor of Object.values(outputs || {})) tensor.dispose();
         }
-    }
-}
-
-function urlHash(url) {
-    return createHash("sha256").update(url).digest("hex").slice(0, 12);
-}
-
-function basename(url) {
-    try {
-        return new URL(url).pathname.split("/").pop() || "model";
-    } catch {
-        return "model";
     }
 }

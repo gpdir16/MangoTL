@@ -41,11 +41,12 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 
 ### AI 제공자
 
-- [CrofAI](https://crof.ai)
+- [OpenAI-compatible endpoint](https://platform.openai.com/docs/api-reference) (사용자 지정 /v1 서버)
 - [OpenRouter](https://openrouter.ai)
 - [OpenAI](https://openai.com)
 - [Synthetic](https://synthetic.new)
 - [Ollama](https://ollama.com) (로컬)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) (내장 로컬 GGUF 프리셋)
 - [Ollama Cloud](https://ollama.com)
 - [ZenMux](https://zenmux.ai)
 - [Upstage](https://upstage.ai)
@@ -64,15 +65,16 @@ MangoTL은 다양한 웹사이트, 언어, AI 제공자 등을 지원합니다.
 
 ```sh
 docker pull ghcr.io/gpdir16/mangotl
-docker run -d --name mangotl \
+docker run -d \
     -p 8787:8787 \
     -v mangotl-secrets:/app/server/secrets \
     -v mangotl-ocr-cache:/app/server/.ocr-cache \
+    -v mangotl-llama-cache:/app/server/.llama-cache \
     --restart unless-stopped \
     ghcr.io/gpdir16/mangotl
 ```
 
-> 설정은 `mangotl-secrets` 볼륨에 저장되고, 다운로드한 OCR 모델은 `mangotl-ocr-cache` 볼륨에 캐시됩니다.
+> 설정은 `mangotl-secrets` 볼륨에 저장되고, OCR 모델은 `mangotl-ocr-cache`, GGUF 모델은 `mangotl-llama-cache`에 캐시됩니다. 이미지에 llama.cpp CPU 런타임도 포함되어 있으므로 별도 추론 컨테이너가 필요 없습니다.
 
 2. 브라우저에서 http://localhost:8787/config 를 열고, 설정에서 제공자, API 키, 모델을 지정합니다.
 3. 이제 브라우저 애드온을 통해 MangoTL을 사용할 수 있습니다. 브라우저 애드온 설치는 [브라우저 애드온 설치](#브라우저-애드온-설치) 섹션을 참고하세요.
