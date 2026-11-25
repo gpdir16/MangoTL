@@ -4,6 +4,9 @@
     "description": "Translate manga, manhwa, webtoon, and comic images directly in your browser.",
     "license": "AGPL-3.0-or-later",
     "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
     "author": "gpdir16 <me@gpdir16.com>",
     "repository": {
         "type": "git",
@@ -14,26 +17,28 @@
     },
     "homepage": "https://github.com/gpdir16/MangoTL#readme",
     "scripts": {
-        "dev": "bun --watch server/index.js",
-        "start": "bun server/index.js",
-        "check": "bun run format:check",
-        "sync:public-config": "bun server/scripts/sync-public-config.js",
-        "lint:extension": "bunx web-ext lint --source-dir extension",
-        "release:check": "bun run sync:public-config && bun run check && bun run lint:extension && bun run release:extension",
-        "release:extension": "bun server/scripts/package-extension.js",
+        "dev": "node --watch server/index.js",
+        "start": "node server/index.js",
+        "check": "npm run format:check",
+        "sync:public-config": "node server/scripts/sync-public-config.js",
+        "lint:extension": "npx web-ext lint --source-dir extension",
+        "release:check": "npm run sync:public-config && npm run check && npm run lint:extension && npm run release:extension",
+        "release:extension": "node server/scripts/package-extension.js",
         "format": "prettier --write .",
         "format:check": "prettier --check ."
     },
     "dependencies": {
+        "@elysiajs/node": "^1.4.5",
         "@napi-rs/canvas": "1.0.0",
-        "@snowfluke/ppu-paddle-ocr": "npm:@jsr/snowfluke__ppu-paddle-ocr@5.4.4",
+        "@snowfluke/ppu-paddle-ocr": "https://npm.jsr.io/~/11/@jsr/snowfluke__ppu-paddle-ocr/5.4.4.tgz",
         "elysia": "^1.4.28",
         "onnxruntime-node": "^1.24.3",
         "ppu-ocv": "^3.1.5",
-        "prettier": "^3.8.3"
+        "prettier": "^3.8.3",
+        "yaml": "^2.9.1"
     },
-    "trustedDependencies": [
-        "onnxruntime-node",
-        "protobufjs"
-    ]
+    "allowScripts": {
+        "onnxruntime-node@1.31.1": true,
+        "protobufjs@7.6.6": true
+    }
 }

@@ -81,15 +81,15 @@ docker run -d \
 
 ### 방법 2: 직접 실행
 
-요구사항: [Bun](https://bun.sh), [NodeJS](https://nodejs.org/ko), [Git](https://git-scm.com/)
+요구사항: [Node.js](https://nodejs.org/ko) 22 이상, [Git](https://git-scm.com/)
 
 1. 아래 명령어로 Git 레포를 클론하고 실행할수 있습니다:
 
 ```sh
 git clone https://github.com/gpdir16/MangoTL.git
 cd MangoTL
-bun install
-bun run start
+npm install
+npm run start
 ```
 
 > 설정은 `server/secrets/settings.json`에 저장됩니다.
@@ -107,7 +107,7 @@ bun run start
 
 ### 방법 2: 직접 빌드 후 임시 설치
 
-1. 릴리스 zip 빌드: `bun run release:extension`
+1. 릴리스 zip 빌드: `npm run release:extension`
 2. Firefox에서 `about:debugging` → **이 Firefox** → **임시 부가 기능 로드** 후 `extension/` 안의 파일을 선택합니다.
 3. 설치된 애드온 아이콘을 클릭 한 후 팝업에서 설정을 열어 서버 URL(변경한 경우)와 도착 언어를 설정합니다.
 4. 이제 웹사이트에서 이미지를 바로 번역할수 있습니다. 위의 지원 웹사이트에서 시도해보세요.

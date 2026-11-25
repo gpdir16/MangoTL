@@ -81,15 +81,15 @@ docker run -d \
 
 ### Method 2: Run directly
 
-Requires [Bun](https://bun.sh), [NodeJS](https://nodejs.org), [Git](https://git-scm.com/).
+Requires [Node.js](https://nodejs.org) 22 or later and [Git](https://git-scm.com/).
 
 1. Clone the Git repository and run it:
 
 ```sh
 git clone https://github.com/gpdir16/MangoTL.git
 cd MangoTL
-bun install
-bun run start
+npm install
+npm run start
 ```
 
 > Settings are saved in `server/secrets/settings.json`.
@@ -107,7 +107,7 @@ bun run start
 
 ### Method 2: Build and install temporarily
 
-1. Build the release zip: `bun run release:extension`
+1. Build the release zip: `npm run release:extension`
 2. In Firefox, open `about:debugging` → **This Firefox** → **Load Temporary Add-on** and select a file inside `extension/`.
 3. Click the installed add-on icon and open the settings in the popup to set the server URL (if changed) and target language.
 4. You can now translate images on websites right away. Try it on the supported websites above.

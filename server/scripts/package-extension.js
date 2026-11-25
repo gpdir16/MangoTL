@@ -1,4 +1,5 @@
 import { copyFile, mkdir, rm, stat } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,15 +17,19 @@ await rm(archivePath, { force: true });
 await copyFile(rootLicense, extensionLicense);
 
 try {
-    const result = Bun.spawnSync(["zip", "-r", archivePath, ".", "-x", "*.DS_Store", "*.af", "*.zip"], {
+    const result = spawnSync("zip", ["-r", archivePath, ".", "-x", "*.DS_Store", "*.af", "*.zip"], {
         cwd: extensionDir,
-        stdout: "pipe",
-        stderr: "pipe",
+        encoding: "buffer",
+        stdio: ["ignore", "pipe", "pipe"],
     });
 
-    if (result.exitCode !== 0) {
-        const message = new TextDecoder().decode(result.stderr || result.stdout);
-        throw new Error(message || `zip exited with code ${result.exitCode}`);
+    if (result.error) {
+        throw result.error;
+    }
+
+    if (result.status !== 0) {
+        const message = (result.stderr || result.stdout)?.toString() || "";
+        throw new Error(message || `zip exited with code ${result.status}`);
     }
 } finally {
     await rm(extensionLicense, { force: true });

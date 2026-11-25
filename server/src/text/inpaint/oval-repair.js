@@ -109,7 +109,7 @@ function eraseLongVowelTail(ctx, canvasWidth, canvasHeight, block) {
     const runs = [];
     for (let y = 0; y < height; y += 1) {
         const rowRuns = [];
-        for (let x = 0; x < width; ) {
+        for (let x = 0; x < width;) {
             const pixel = (y * width + x) * 4;
             if ((data.data[pixel] + data.data[pixel + 1] + data.data[pixel + 2]) / 3 >= 150) {
                 x += 1;

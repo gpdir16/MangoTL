@@ -9,8 +9,8 @@ By contributing, you agree that your contributions will be licensed under the sa
 ## Development setup
 
 ```sh
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 Load the `extension/` directory as a temporary add-on in Firefox for manual testing.
@@ -18,14 +18,14 @@ Load the `extension/` directory as a temporary add-on in Firefox for manual test
 ## Before opening a pull request
 
 ```sh
-bun run release:check
+npm run release:check
 ```
 
 This syncs public config, checks formatting, lints the extension, and builds `dist/mangotl-extension.zip`.
 
 ## Code style
 
-- Match existing formatting (`bun run format` uses Prettier).
+- Match existing formatting (`npm run format` uses Prettier).
 - Keep changes focused; avoid unrelated refactors in the same PR.
 
 ## Issues and features

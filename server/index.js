@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import { node } from "@elysiajs/node";
 import { readFile } from "node:fs/promises";
 import {
     loadStaticServerConfig,
@@ -35,7 +36,7 @@ async function getRequestConfig() {
     return applyUserSettings(staticConfig, await loadUserSettings());
 }
 
-const app = new Elysia();
+const app = new Elysia({ adapter: node() });
 
 app.onError(({ error, set }) => errorResponse(error, set))
     .onRequest(({ set }) => {
