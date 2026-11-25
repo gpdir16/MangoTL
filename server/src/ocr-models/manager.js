@@ -4,6 +4,17 @@ import { HttpError } from "../utils/http-error.js";
 
 let sharedManager = null;
 
+// 사용하지 않는 OCR 세션은 ONNX Runtime CPU arena를 계속 붙들고 있다.
+// 실측: 세션 3개 해제만으로 RSS 841MB -> 264MB. llama-server의
+// --sleep-idle-seconds와 같은 기본값(300초)을 쓴다. 0 이하면 비활성.
+const DEFAULT_IDLE_UNLOAD_SECONDS = 300;
+
+function idleUnloadMs() {
+    const raw = Number(process.env.MANGOTL_OCR_IDLE_UNLOAD_SECONDS ?? DEFAULT_IDLE_UNLOAD_SECONDS);
+    if (!Number.isFinite(raw) || raw <= 0) return 0;
+    return raw * 1000;
+}
+
 export function getOcrModelManager(staticConfig) {
     if (!sharedManager) sharedManager = createOcrModelManager();
     if (staticConfig) sharedManager.registerPresets(createOcrModelPresets(staticConfig));
@@ -18,6 +29,7 @@ export function createOcrModelManager() {
     const activeTranslations = new Map();
     const loading = new Set();
     const errors = new Map();
+    const idleTimers = new Map();
 
     function registerPresets(entries) {
         for (const preset of entries) {
@@ -101,6 +113,7 @@ export function createOcrModelManager() {
     async function runWithPreset(presetOrId, callback) {
         const preset = typeof presetOrId === "string" ? requirePreset(presetOrId) : presetOrId;
         registerPresets([preset]);
+        cancelIdleUnload(preset.id);
         await waitForOperations(preset.id);
         activeTranslations.set(preset.id, activeCount(preset.id) + 1);
         loading.add(preset.id);
@@ -118,7 +131,36 @@ export function createOcrModelManager() {
             const remaining = activeCount(preset.id) - 1;
             if (remaining > 0) activeTranslations.set(preset.id, remaining);
             else activeTranslations.delete(preset.id);
+            scheduleIdleUnload(preset.id);
         }
+    }
+
+    function cancelIdleUnload(presetId) {
+        const timer = idleTimers.get(presetId);
+        if (!timer) return;
+        clearTimeout(timer);
+        idleTimers.delete(presetId);
+    }
+
+    /**
+     * 마지막 사용 후 일정 시간이 지나면 세션을 내려 네이티브 메모리를 회수한다.
+     * 모델을 다시 쓰면 다음 요청이 세션을 재생성한다(느려지지만 메모리는 돌아온다).
+     */
+    function scheduleIdleUnload(presetId) {
+        const delayMs = idleUnloadMs();
+        if (!delayMs) return;
+
+        cancelIdleUnload(presetId);
+
+        const timer = setTimeout(() => {
+            idleTimers.delete(presetId);
+            if (activeCount(presetId) > 0 || loading.has(presetId)) return;
+            unloadPreset(presetId).catch((error) => console.warn(`[MangoTL] Idle unload skipped for ${presetId}:`, error.message));
+        }, delayMs);
+
+        // 예약된 해제 때문에 프로세스 종료가 지연되지 않게 한다.
+        timer.unref?.();
+        idleTimers.set(presetId, timer);
     }
 
     function registerRuntime(presetId, unload) {
