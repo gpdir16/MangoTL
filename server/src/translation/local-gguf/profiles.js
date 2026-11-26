@@ -6,11 +6,12 @@ const LANGUAGE_NAMES = {
     en: { en: "English", zh: "英语" },
     zh: { en: "Chinese", zh: "中文" },
     de: { en: "German", zh: "德语" },
+    sv: { en: "Swedish", zh: "瑞典语" },
 };
 
 const PROFILE_BUILDERS = {
     "plamo-3-translate": buildPlamoRequest,
-    "hy-mt-2": buildHyMt2Request,
+    "hy-mt-3": buildHyMt3Request,
 };
 
 export function requireLocalModelProfile(profile) {
@@ -45,12 +46,13 @@ export function buildPlamoRequest({ model, block, blocks, sourceLanguage, target
     };
 }
 
-export function buildHyMt2Request({ model, block, sourceLanguage, targetLanguage }) {
+export function buildHyMt3Request({ model, block, sourceLanguage, targetLanguage }) {
     const useChinese = sourceLanguage === "zh" || targetLanguage === "zh";
     const language = LANGUAGE_NAMES[targetLanguage] || { en: targetLanguage, zh: targetLanguage };
+    // Hy-MT3 모델 카드의 기본 번역 지시문. 언어 이름은 전체 이름을 쓴다.
     const prompt = useChinese
-        ? `将以下文本翻译为 ${language.zh} ，注意 只需要输出翻译后的结果，不要额外解释 ： ${block.sourceText}`
-        : `Translate the following text into ${language.en} . Note that you should only output the translated result without any additional explanation : ${block.sourceText}`;
+        ? `将以下文本翻译为 ${language.zh}，注意只需要输出翻译后的结果，不要额外解释：\n\n${block.sourceText}`
+        : `Translate the following text into ${language.en}. Note that you should only output the translated result without any additional explanation:\n\n${block.sourceText}`;
 
     return {
         model,

@@ -28,14 +28,14 @@
                 "supportedLanguages": ["ja", "ko", "en", "zh", "de"]
             },
             {
-                "id": "hy-mt2-1.8b",
-                "name": "Hy-MT2 1.8B Q4_K_M",
-                "model": "tencent/Hy-MT2-1.8B-GGUF:Q4_K_M",
-                "profile": "hy-mt-2",
-                "downloadBytes": 1130000000,
-                "sourceUrl": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF",
+                "id": "hy-mt3-1.8b",
+                "name": "Hy-MT3 1.8B Q4_K_M",
+                "model": "tencent/Hy-MT3-1.8B-GGUF:Q4_K_M",
+                "profile": "hy-mt-3",
+                "downloadBytes": 1348432160,
+                "sourceUrl": "https://huggingface.co/tencent/Hy-MT3-1.8B-GGUF",
                 "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
-                "supportedLanguages": ["ja", "ko", "en", "zh", "de"]
+                "supportedLanguages": ["ja", "ko", "en", "zh", "de", "sv"]
             }
         ]
     }
